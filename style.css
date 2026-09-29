@@ -198,3 +198,8 @@ body {
     margin-bottom: 6px;
     line-height: 1.3;
 }
+/* Asegurar que los contenedores de los pines personalizados no tengan fondo por defecto de Leaflet */
+.custom-pin-container {
+    background: transparent !important;
+    border: none !important;
+}
