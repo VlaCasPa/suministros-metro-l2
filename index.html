@@ -11,7 +11,7 @@
 </head>
 <body>
 
-    <!-- Pantalla de Inicio de Sesión Corporativa (Estilo Homologado) -->
+    <!-- Pantalla de Inicio de Sesión Corporativa -->
     <div id="auth-overlay">
         <div class="auth-card">
             <h2>Sistema de Control</h2>
@@ -72,7 +72,6 @@
         }
 
         function ingresoGoogle() {
-            // Simulación de acceso por dominio corporativo de Google
             document.getElementById('auth-overlay').style.display = 'none';
             sessionStorage.setItem('ccml_auth', 'true');
         }
