@@ -23,7 +23,7 @@ body {
     z-index: 1;
 }
 
-/* Overlay de Autenticación Idéntico a tus otros repositorios */
+/* Overlay de Autenticación */
 #auth-overlay {
     position: fixed;
     top: 0;
@@ -198,7 +198,8 @@ body {
     margin-bottom: 6px;
     line-height: 1.3;
 }
-/* Asegurar que los contenedores de los pines personalizados no tengan fondo por defecto de Leaflet */
+
+/* Contenedor de pines personalizados (sin fondo por defecto) */
 .custom-pin-container {
     background: transparent !important;
     border: none !important;
