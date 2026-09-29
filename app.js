@@ -1,13 +1,14 @@
-// Inicialización del mapa centrado en el eje de la Línea 2 del Metro de Lima
+// Inicialización del mapa centrado en Lima (Línea 2)
 const map = L.map('map').setView([-12.0464, -77.0428], 13);
 
-// Capa base de mapas de alta legibilidad (CartoDB Positron)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://ccmetrolima.com">Consorcio Constructor Metro 2 de Lima</a>'
+// Capa base de Google Maps con diseño limpio en escala de grises (Estilo corporativo)
+L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&apistyle=s.t%3A33%7Cp.s%3A-100%2Cs.t%3A3%7Cp.s%3A-100', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: '&copy; Google Maps - Consorcio Constructor Metro 2 de Lima'
 }).addTo(map);
 
-// Recorrer la matriz importada desde datos.js para pintar los marcadores
+// Renderizar todos los registros cargados desde datos.js
 registrosSuministros.forEach(item => {
     const popupContent = `
         <div style="font-family: 'Segoe UI', sans-serif; min-width: 220px;">
