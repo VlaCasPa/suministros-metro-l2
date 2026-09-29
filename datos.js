@@ -24,5 +24,4 @@ const registrosSuministros = [
         agua: "• 5652759-1 (SEDAPAL) - ACTIVO",
         luz: "• 2047271 (PLUZ ENERGIA) - ACTIVO"
     }
-    // Aquí se pueden agregar o vincular de forma masiva los demás registros
 ];
