@@ -1,19 +1,17 @@
-// 1. Inicialización del mapa centrado de forma genérica (el zoom extent ajustará la vista luego)
+// Inicialización del mapa base
 const map = L.map('map').setView([-12.0464, -77.0428], 13);
 
-// Capa base de Google Maps con diseño limpio en escala de grises
+// Capa de Google Maps con diseño limpio en escala de grises
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&apistyle=s.t%3A33%7Cp.s%3A-100%2Cs.t%3A3%7Cp.s%3A-100', {
     maxZoom: 20,
     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     attribution: '&copy; Google Maps - Consorcio Constructor Metro 2 de Lima'
 }).addTo(map);
 
-// Array para almacenar las coordenadas y hacer el Zoom Extent posterior
 const bounds = [];
 
-// 2. Recorrer la matriz de registros cargados desde datos.js
+// Recorrer la matriz de registros para pintar los pines circulares con etiquetas de ID
 registrosSuministros.forEach(item => {
-    // Crear un marcador con etiqueta flotante integrada (estilo idéntico a su referencia)
     const customIcon = L.divIcon({
         className: 'custom-pin-container',
         html: `
@@ -58,15 +56,14 @@ registrosSuministros.forEach(item => {
         </div>
     `;
 
-    // Añadir marcador al mapa
     const marker = L.marker([item.lat, item.lng], { icon: customIcon }).addTo(map);
     marker.bindPopup(popupContent);
 
-    // Guardar coordenadas para el cálculo del Zoom Extent
+    // Acumular coordenadas para el encuadre automático
     bounds.push([item.lat, item.lng]);
 });
 
-// 3. Ejecutar Zoom Extent automático para encuadrar todas las estructuras visibles
+// Ejecutar Zoom Extent automático para abarcar todas las estructuras al cargar
 if (bounds.length > 0) {
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
 }
