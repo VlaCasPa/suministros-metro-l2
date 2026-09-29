@@ -1,0 +1,74 @@
+:root {
+    --primary-color: #1A365D;
+    --secondary-color: #2B6CB0;
+    --bg-card: #FFFFFF;
+    --text-main: #2D3748;
+    --border-color: #E2E8F0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-main);
+    background-color: #F7FAFC;
+}
+
+#map {
+    height: 100vh;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* Panel Gerencial Flotante */
+.gerential-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 320px;
+    border-left: 5px solid var(--primary-color);
+}
+
+.gerential-panel h2 {
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.gerential-panel p {
+    font-size: 12px;
+    color: #4A5568;
+    margin: 0 0 15px 0;
+    line-height: 1.4;
+}
+
+/* Estilo personalizado para los Pop-ups del Mapa */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.popup-header {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 14px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+}
+
+.popup-section {
+    font-size: 12px;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
