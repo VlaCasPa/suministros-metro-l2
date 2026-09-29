@@ -2,54 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Repositorio de Suministros - Línea 2 y L4 (CCML)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositorio Gerencial de Suministros - L2 & L4</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #map { height: 100vh; width: 100%; }
-        .header-panel {
-            position: absolute; top: 10px; right: 10px; z-index: 1000;
-            background: white; padding: 15px; border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 300px;
-        }
-        h2 { font-size: 16px; margin: 0 0 10px 0; color: #2C3E50; }
-    </style>
+    <!-- Estilos Propios -->
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="header-panel">
-        <h2>Control Gerencial de Suministros</h2>
-        <p style="font-size: 12px; color: #555;">Visualización integrada de frentes de obra (Línea 2 y L4).</p>
+
+    <!-- Panel Informativo Gerencial flotante -->
+    <div class="gerential-panel">
+        <h2>Control de Suministros</h2>
+        <p>Visualización geoespacial integrada de servicios públicos (Agua y Luz) asociada a estructuras de obra.</p>
+        <div style="font-size: 11px; font-weight: bold; color: #2B6CB0;">
+            ESTÁNDAR PMBOK & LEAN CONSTRUCTION
+        </div>
     </div>
-    
+
+    <!-- Contenedor del Mapa -->
     <div id="map"></div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Inicializar el mapa centrado en Lima (Trazo Línea 2)
-        var map = L.map('map').setView([-12.0464, -77.0428], 13);
-
-        // Capa base de mapas (Estilo limpio tipo CartoDB Positron)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{z}.png', {
-            maxZoom: 19,
-            attribution: '&copy; Consorcio Constructor Metro 2 de Lima'
-        }).addTo(map);
-
-        // Ejemplo de marcador con ventana emergente estructurada
-        var marker = L.marker([-12.05700, -77.11510]).addTo(map);
-        marker.bindPopup(`
-            <div style="font-family: sans-serif;">
-                <b style="color: #2980B9;">ESTRUCTURA: E03</b><br>
-                <hr style="margin: 5px 0;">
-                <b>💧 AGUA (SEDAPAL):</b><br>
-                • 7308469-1: EN PROCESO DE BAJA<br>
-                • 7688375: ACTIVO<br>
-                <br>
-                <b>⚡ LUZ (PLUZ):</b><br>
-                • 3036716: ACTIVO
-            </div>
-        `);
-    </script>
+    <!-- Lógica de la Aplicación -->
+    <script src="app.js"></script>
 </body>
 </html>
