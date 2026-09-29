@@ -3,82 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repositorio Gerencial de Suministros - L2 & L4</title>
+    <title>Sistema de Control - Administración Contractual L2/L4</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Estilos Propios -->
     <link rel="stylesheet" href="style.css" />
-    <style>
-        /* Estilo para la pantalla de bloqueo corporativo */
-        #auth-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #1A365D;
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .auth-card {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-        .auth-card h3 {
-            color: #1A365D;
-            margin-top: 0;
-        }
-        .auth-card input {
-            width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #CBD5E0;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .auth-card button {
-            background-color: #2B6CB0;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-        }
-        .auth-card button:hover {
-            background-color: #2C5282;
-        }
-        .error-msg {
-            color: #E53E3E;
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;
-        }
-    </style>
 </head>
 <body>
 
-    <!-- Pantalla de Validación de Acceso Corporativo -->
+    <!-- Pantalla de Inicio de Sesión Corporativa (Estilo Homologado) -->
     <div id="auth-overlay">
         <div class="auth-card">
-            <h3>Acceso Restringido</h3>
-            <p style="font-size: 13px; color: #4A5568;">Ingrese su correo corporativo autorizado para acceder al repositorio de suministros (CCML).</p>
-            <input type="email" id="corporate-email" placeholder="usuario@ccmetrolima.com" />
-            <button onclick="validarAcceso()">Ingresar al Sistema</button>
-            <div id="error-message" class="error-msg">Acceso denegado. Se requiere dominio @ccmetrolima.com</div>
+            <h2>Sistema de Control</h2>
+            <p class="auth-subtitle">Administración Contractual L2/L4</p>
+            
+            <div class="form-group">
+                <input type="email" id="corporate-email" placeholder="Correo Corporativo" />
+            </div>
+            <div class="form-group">
+                <input type="password" id="corporate-pass" placeholder="Contraseña" />
+            </div>
+            
+            <button class="btn-primary" onclick="validarAcceso()">Ingresar al Sistema</button>
+            
+            <div class="divider">
+                <span>Opciones Alternas</span>
+            </div>
+            
+            <button class="btn-google" onclick="ingresoGoogle()">
+                <span class="google-icon">G</span> Ingresar con Google
+            </button>
+            
+            <div id="error-message" class="error-msg">Credenciales inválidas o dominio no autorizado (@ccmetrolima.com)</div>
         </div>
     </div>
 
-    <!-- Panel Informativo Gerencial flotante -->
+    <!-- Panel Informativo Gerencial Flotante -->
     <div class="gerential-panel">
         <h2>Control de Suministros</h2>
         <p>Visualización geoespacial integrada de servicios públicos (Agua y Luz) asociada a estructuras de obra.</p>
@@ -98,23 +58,25 @@
     <script src="app.js"></script>
 
     <script>
-        // Lógica de validación de dominio corporativo similar a tus otros repositorios
         function validarAcceso() {
-            const emailInput = document.getElementById('corporate-email').value.trim().toLowerCase();
+            const email = document.getElementById('corporate-email').value.trim().toLowerCase();
+            const pass = document.getElementById('corporate-pass').value.trim();
             const errorDiv = document.getElementById('error-message');
-            
-            // Validar si pertenece al dominio corporativo
-            if (emailInput.endsWith('@ccmetrolima.com')) {
-                // Ocultar pantalla de bloqueo y permitir acceso
+
+            if (email.endsWith('@ccmetrolima.com') && pass.length > 0) {
                 document.getElementById('auth-overlay').style.display = 'none';
-                // Opcional: Guardar sesión temporal en el navegador
                 sessionStorage.setItem('ccml_auth', 'true');
             } else {
                 errorDiv.style.display = 'block';
             }
         }
 
-        // Comprobar si ya inició sesión previamente en la misma pestaña
+        function ingresoGoogle() {
+            // Simulación de acceso por dominio corporativo de Google
+            document.getElementById('auth-overlay').style.display = 'none';
+            sessionStorage.setItem('ccml_auth', 'true');
+        }
+
         window.onload = function() {
             if (sessionStorage.getItem('ccml_auth') === 'true') {
                 document.getElementById('auth-overlay').style.display = 'none';
