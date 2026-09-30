@@ -37,8 +37,8 @@ body {
 
 /* Forzar escala de grises total en la capa de mapas */
 .leaflet-tile-pane {
-    filter: grayscale(100%) contrast(100%) brightness(75%);
-    -webkit-filter: grayscale(100%) contrast(100%) brightness(75%);
+    filter: grayscale(100%) contrast(100%) brightness(100%) opacity(0.75);
+    -webkit-filter: grayscale(100%) contrast(100%) brightness(100%) opacity(0.75);
 }
 
 /* Ventana de datos (popup) con fondo #C5DCDE */
