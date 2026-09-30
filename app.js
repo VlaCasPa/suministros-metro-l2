@@ -201,12 +201,8 @@ function filtrarMapa() {
         }
 
         if (estadoFiltro !== "TODOS") {
-            let estadoBusqueda = "";
-            if (estadoFiltro === "ACTIVO") estadoBusqueda = "activo";
-            if (estadoFiltro === "PROCESO_BAJA") estadoBusqueda = "proceso de baja";
-            if (estadoFiltro === "BAJA") estadoBusqueda = "de baja";
-
-            if (!contenidoTotal.includes(estadoBusqueda)) cumpleFiltros = false;
+            // Compara directamente el valor seleccionado con el texto del registro
+            if (!contenidoTotal.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
         }
 
         if (cumpleTexto && cumpleFiltros) {
@@ -222,7 +218,6 @@ function filtrarMapa() {
     }
 }
 
-// Función para restablecer los filtros y mostrar todos los IDs nuevamente
 function limpiarFiltros() {
     document.getElementById('input-buscar').value = "";
     document.getElementById('select-tipo').value = "TODOS";
