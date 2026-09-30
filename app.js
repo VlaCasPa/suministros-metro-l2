@@ -133,7 +133,6 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
     boundsGlobal = [];
 
     registrosSuministros.forEach(item => {
-        // Concatenación robusta de todo el contenido del objeto para garantizar lectura en la búsqueda
         const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
         const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
 
@@ -192,7 +191,6 @@ function filtrarMapa() {
     todosLosMarcadores.forEach(marker => {
         const data = marker.itemData;
         
-        // Verificación directa sobre la cadena completa unificada en minúsculas
         const cumpleTexto = textoBusqueda === "" || data.textoBusqueda.includes(textoBusqueda);
         let cumpleFiltros = true;
 
@@ -225,16 +223,17 @@ function filtrarMapa() {
         }
     });
 
-    // Ajuste de zoom automático para cualquier ID o número de suministro buscado
+    // CENTRADO AUTOMÁTICO PERFECTO PARA WEB Y CELULAR
     if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
         if (marcadoresVisibles.length === 1) {
             const unicoMarker = marcadoresVisibles[0];
-            map.setView(unicoMarker.getLatLng(), 17, { animate: true });
+            // flyTo proporciona una transición suave y precisa al centro de la pantalla tanto en desktop como en móvil
+            map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
             unicoMarker.openPopup();
         } else {
             const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
             if (grupoBounds.isValid()) {
-                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16 });
+                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16, animate: true });
             }
         }
     }
@@ -247,6 +246,9 @@ function limpiarFiltros() {
     document.getElementById('select-estado').value = "TODOS";
 
     cargarMapa("TODOS");
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
+    }
 }
 
 window.onload = function() {
