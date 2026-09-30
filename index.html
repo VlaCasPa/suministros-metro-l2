@@ -33,6 +33,7 @@
                 <option value="TODAS">Todas</option>
                 <option value="SEDAPAL">SEDAPAL</option>
                 <option value="PLUZ">PLUZ ENERGÍA</option>
+                <option value="LDS">LDS</option>
             </select>
         </div>
         <div class="filtro-grupo">
@@ -40,7 +41,8 @@
             <select id="select-estado" onchange="filtrarMapa()">
                 <option value="TODOS">Todos</option>
                 <option value="ACTIVO">Activo</option>
-                <option value="BAJA">Baja</option>
+                <option value="PROCESO_BAJA">En Proceso de Baja</option>
+                <option value="BAJA">Baja Definitiva</option>
             </select>
         </div>
     </div>
@@ -48,9 +50,8 @@
     <!-- Contenedor del Mapa -->
     <div id="map"></div>
 
-    <!-- Librerías JS y Archivos Locales -->
+    <!-- Librerías JS y Script -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="datos.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
