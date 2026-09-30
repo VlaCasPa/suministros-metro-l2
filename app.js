@@ -24,7 +24,7 @@ const registrosSuministros = [
         luz: "⚡ Suministro: 3036716 (PLUZ) - Estado: ACTIVO" 
     },
     { id: "E04", tramo: "L2", lat: -12.054839, lng: -77.104798, agua: "• Suministro: 7173036-0 (SEDAPAL) - Estado: ACTIVO | Obs: TBM<br>• Suministro: 7451587-5 (SEDAPAL) - Estado: DE BAJA<br>• Suministro: 7819600 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3239253 (PLUZ) - Estado: ACTIVO" },
-    { id: "E05", tramo: "L2", lat: -12.053715, lng: -77.098749, agua: "• Suministro: 7688375-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7598239-7 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082040 (PLUZ) - Estado: ACTIVO" },
+    { id: "E05", tramo: "L2", lat: -12.053715, lng: -77.098749, agua: "• Suministro: 7688375-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7598239-7 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7998992 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082040 (PLUZ) - Estado: ACTIVO" },
     { id: "E06", tramo: "L2", lat: -12.051975, lng: -77.088926, agua: "• Suministro: 7465247-0 (SEDAPAL) - Estado: EN PROCESO DE BAJA<br>• Suministro: 7876299-4 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3073811 (PLUZ) - Estado: ACTIVO" },
     { id: "E07", tramo: "L2", lat: -12.055653, lng: -77.081683, agua: "• Suministro: 7734738-3 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3245476 (PLUZ) - Estado: ACTIVO | Obs: EN TRÁMITE" },
     { id: "E08", tramo: "L2", lat: -12.059411, lng: -77.075806, agua: "• Suministro: 7554853-7 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082020 (PLUZ) - Estado: ACTIVO" },
@@ -133,7 +133,8 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
     boundsGlobal = [];
 
     registrosSuministros.forEach(item => {
-        const contenidoTotal = `${item.agua} ${item.luz}`.toLowerCase();
+        // Concatenación robusta de todo el contenido del objeto para garantizar lectura en la búsqueda
+        const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
         const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
 
         const customIcon = L.divIcon({
@@ -161,7 +162,14 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
         const marker = L.marker([item.lat, item.lng], { icon: customIcon });
         marker.bindPopup(popupContent);
         
-        marker.itemData = item;
+        marker.itemData = {
+            id: item.id,
+            tramo: item.tramo,
+            agua: item.agua,
+            luz: item.luz,
+            textoBusqueda: contenidoTotal
+        };
+
         todosLosMarcadores.push(marker);
         capaMarcadores.addLayer(marker);
         boundsGlobal.push([item.lat, item.lng]);
@@ -182,30 +190,30 @@ function filtrarMapa() {
     let marcadoresVisibles = [];
 
     todosLosMarcadores.forEach(marker => {
-        const item = marker.itemData;
-        const contenidoTotal = `${item.id} ${item.agua} ${item.luz}`.toLowerCase();
+        const data = marker.itemData;
         
-        const cumpleTexto = textoBusqueda === "" || contenidoTotal.includes(textoBusqueda);
+        // Verificación directa sobre la cadena completa unificada en minúsculas
+        const cumpleTexto = textoBusqueda === "" || data.textoBusqueda.includes(textoBusqueda);
         let cumpleFiltros = true;
 
-        if (tipoFiltro === "AGUA" && !item.agua.includes("Suministro")) cumpleFiltros = false;
-        if (tipoFiltros === "LUZ" && !item.luz.includes("Suministro")) cumpleFiltros = false;
+        if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro")) cumpleFiltros = false;
+        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
 
         if (empresaFiltro !== "TODAS") {
-            if (!contenidoTotal.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
+            if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
         }
 
         if (estadoFiltro !== "TODOS") {
-            if (!contenidoTotal.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
+            if (!data.textoBusqueda.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
         }
 
         if (cumpleTexto && cumpleFiltros) {
-            const colorPin = obtenerColorPin(contenidoTotal, estadoFiltro);
+            const colorPin = obtenerColorPin(data.textoBusqueda, estadoFiltro);
             const customIcon = L.divIcon({
                 className: 'pin-etiqueta-contenedor',
                 html: `
                     <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${item.id}</div>
+                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${data.id}</div>
                 `,
                 iconSize: [80, 24],
                 iconAnchor: [7, 12]
@@ -217,10 +225,18 @@ function filtrarMapa() {
         }
     });
 
-    if (textoBusqueda.length > 0 && marcadoresVisibles.length === 1) {
-        const unicoMarker = marcadoresVisibles[0];
-        map.setView(unicoMarker.getLatLng(), 17, { animate: true });
-        unicoMarker.openPopup();
+    // Ajuste de zoom automático para cualquier ID o número de suministro buscado
+    if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
+        if (marcadoresVisibles.length === 1) {
+            const unicoMarker = marcadoresVisibles[0];
+            map.setView(unicoMarker.getLatLng(), 17, { animate: true });
+            unicoMarker.openPopup();
+        } else {
+            const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
+            if (grupoBounds.isValid()) {
+                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16 });
+            }
+        }
     }
 }
 
