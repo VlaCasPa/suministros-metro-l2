@@ -4,9 +4,12 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #0f172a;
     color: #f8fafc;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
+/* ==========================================
+   DISEÑO WEB (PANTALLA DIVIDIDA 2/3 y 1/3)
+   ========================================== */
 #dashboard-container {
     display: flex;
     width: 100vw;
@@ -35,13 +38,13 @@ body {
     z-index: 1;
 }
 
-/* Forzar escala de grises total en la capa de mapas */
+/* Forzar escala de grises en mapas */
 .leaflet-tile-pane {
     filter: grayscale(100%) contrast(100%) brightness(100%) opacity(65%);
     -webkit-filter: grayscale(100%) contrast(100%) brightness(100%) opacity(65%);
 }
 
-/* Ventana de datos (popup) con fondo #C5DCDE */
+/* Popups informativos */
 .leaflet-popup-content-wrapper {
     background-color: #C5DCDE !important;
     color: #1E293B;
@@ -65,14 +68,13 @@ body {
     padding: 2px 6px;
     margin-left: 5px;
     border-radius: 4px;
-    font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: bold;
     color: #1E293B;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-/* Panel flotante de título */
+/* Título flotante */
 #titulo-flotante {
     position: absolute;
     top: 15px;
@@ -87,7 +89,7 @@ body {
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Panel de Búsqueda y Filtros */
+/* Panel de Filtros Superior Derecho */
 #panel-filtros {
     position: absolute;
     top: 15px;
@@ -173,7 +175,7 @@ body {
     border: 1px solid #ffffff;
 }
 
-/* MARCA DE AGUA ESTILIZADA (Fondo blanco translúcido, texto #0A0A1F, esquina inferior izquierda) */
+/* Marca de Agua */
 #marca-agua-mapa {
     position: absolute;
     bottom: 15px;
@@ -182,17 +184,15 @@ body {
     background: rgba(255, 255, 255, 0.82);
     padding: 4px 10px;
     border-radius: 4px;
-    font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: 600;
     color: #0A0A1F;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
     pointer-events: none;
     user-select: none;
-    backdrop-filter: blur(2px);
 }
 
-/* ESTILOS DE LAS TABLAS */
+/* Tablas Gerenciales */
 .tabla-panel {
     flex: 1;
     display: flex;
@@ -216,7 +216,6 @@ body {
     font-weight: 700;
     font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .table-container {
@@ -232,7 +231,6 @@ table {
     color: #1e293b;
 }
 
-/* ENCABEZADOS SÓLIDOS (Gris oscuro/negro con texto blanco para evitar superposición translúcida) */
 th {
     background-color: #1e293b;
     color: #ffffff;
@@ -261,4 +259,95 @@ tr.fila-interactiva {
 
 .tabla-luz tr.fila-interactiva:hover {
     background-color: rgba(217, 119, 6, 0.25);
+}
+
+
+/* ==========================================
+   DISEÑO MÓVIL / CELULAR (PANTALLA APILADA)
+   ========================================== */
+@media screen and (max-width: 900px) {
+    body {
+        overflow-y: auto;
+    }
+
+    #dashboard-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    /* El mapa ocupa exactamente el 70% de la altura de la pantalla móvil */
+    #seccion-mapa {
+        width: 100vw;
+        height: 70vh;
+    }
+
+    /* Las tablas ocupan el resto debajo del mapa */
+    #seccion-tablas {
+        width: 100vw;
+        height: 60vh;
+        border-left: none;
+        border-top: 3px solid #334155;
+    }
+
+    /* Ajuste responsivo de filtros y títulos para evitar superposiciones en celulares */
+    #titulo-flotante {
+        top: 10px;
+        left: 10px;
+        font-size: 11px;
+        padding: 6px 10px;
+        max-width: 50%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #panel-filtros {
+        top: 50px;
+        right: 10px;
+        left: 10px;
+        padding: 8px;
+        gap: 6px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        align-items: center;
+    }
+
+    .filtro-grupo input, .filtro-grupo select {
+        width: 100%;
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+
+    #btn-limpiar {
+        grid-column: span 2;
+        padding: 5px;
+        font-size: 10px;
+    }
+
+    #panel-leyenda-estados {
+        bottom: 10px;
+        right: 10px;
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+    #marca-agua-mapa {
+        bottom: 10px;
+        left: 10px;
+        font-size: 9px;
+        padding: 3px 6px;
+    }
+
+    .tabla-header {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+
+    table {
+        font-size: 10px;
+    }
+
+    th, td {
+        padding: 4px 6px;
+    }
 }
