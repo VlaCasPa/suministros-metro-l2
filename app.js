@@ -4,9 +4,27 @@ const registrosSuministros = [
     { id: "DOVELAS", tramo: "L4", lat: -12.03071, lng: -77.102434, agua: "• Suministro: 7250007-7 (SEDAPAL) - Estado: ACTIVO", luz: "Sin registro de luz" },
     { id: "E01", tramo: "L2", lat: -12.05317, lng: -77.137623, agua: "• Suministro: 7355727-4 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7752475-9 (SEDAPAL) - Estado: EN PROCESO DE BAJA | Obs: En proceso de baja (octubre de 2026)", luz: "⚡ Suministro: 3007041 (PLUZ) - Estado: ACTIVO" },
     { id: "E02", tramo: "L2", lat: -12.058771, lng: -77.125859, agua: "• Suministro: 7364644-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7841390-3 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3007043 (PLUZ) - Estado: ACTIVO" },
-    { id: "E03", tramo: "L2", lat: -12.056998, lng: -77.115102, agua: "• Suministro: 7308469-1 (SEDAPAL) - Estado: EN PROCESO DE BAJA | Obs: En proceso de baja (setiembre de 2026)<br>• Suministro: 7688375 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7340529-2 (SEDAPAL) - Estado: DE BAJA", luz: "⚡ Suministro: 3036716 (PLUZ) - Estado: ACTIVO" },
+    { 
+        id: "E03", 
+        tramo: "L2", 
+        lat: -12.056998, 
+        lng: -77.115102, 
+        agua: "• Suministro: 7308469-1 (SEDAPAL) - Estado: EN PROCESO DE BAJA | Obs: En proceso de baja (setiembre de 2026)<br>" +
+              "• Suministro: 7688375 (SEDAPAL) - Estado: ACTIVO<br>" +
+              "• Suministro: 7340529-2 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 1)<br>" +
+              "• Suministro: 7340545-8 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 2)<br>" +
+              "• Suministro: 7340549-0 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 3)<br>" +
+              "• Suministro: 7340553-2 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 4)<br>" +
+              "• Suministro: 7340565-6 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 5)<br>" +
+              "• Suministro: 7340568-0 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 6)<br>" +
+              "• Suministro: 7340569-8 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 7)<br>" +
+              "• Suministro: 7340578-9 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 8)<br>" +
+              "• Suministro: 7340579-7 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 9)<br>" +
+              "• Suministro: 7340580-5 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 10)", 
+        luz: "⚡ Suministro: 3036716 (PLUZ) - Estado: ACTIVO" 
+    },
     { id: "E04", tramo: "L2", lat: -12.054839, lng: -77.104798, agua: "• Suministro: 7173036-0 (SEDAPAL) - Estado: ACTIVO | Obs: TBM<br>• Suministro: 7451587-5 (SEDAPAL) - Estado: DE BAJA<br>• Suministro: 7819600 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3239253 (PLUZ) - Estado: ACTIVO" },
-    { id: "E05", tramo: "L2", lat: -12.053715, lng: -77.098749, agua: "• Suministro: 7688375-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7598239-7 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7998992 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082040 (PLUZ) - Estado: ACTIVO" },
+    { id: "E05", tramo: "L2", lat: -12.053715, lng: -77.098749, agua: "• Suministro: 7688375-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7598239-7 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082040 (PLUZ) - Estado: ACTIVO" },
     { id: "E06", tramo: "L2", lat: -12.051975, lng: -77.088926, agua: "• Suministro: 7465247-0 (SEDAPAL) - Estado: EN PROCESO DE BAJA<br>• Suministro: 7876299-4 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3073811 (PLUZ) - Estado: ACTIVO" },
     { id: "E07", tramo: "L2", lat: -12.055653, lng: -77.081683, agua: "• Suministro: 7734738-3 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3245476 (PLUZ) - Estado: ACTIVO | Obs: EN TRÁMITE" },
     { id: "E08", tramo: "L2", lat: -12.059411, lng: -77.075806, agua: "• Suministro: 7554853-7 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082020 (PLUZ) - Estado: ACTIVO" },
@@ -95,20 +113,17 @@ let capaMarcadores = L.layerGroup().addTo(map);
 let todosLosMarcadores = [];
 let boundsGlobal = [];
 
-// Función para determinar el color del pin según el estado predominante o filtro seleccionado
 function obtenerColorPin(textoTotal, estadoFiltroSelect) {
     if (estadoFiltroSelect === "ACTIVO") return "#043B0F";
     if (estadoFiltroSelect === "EN PROCESO DE BAJA") return "#913A14";
     if (estadoFiltroSelect === "DE BAJA") return "#BF1D4B";
     if (estadoFiltroSelect === "SIN REGISTRO") return "#2D2836";
 
-    // Si no hay filtro estricto de estado, evaluamos el texto general
     if (textoTotal.includes("en proceso de baja")) return "#913A14";
     if (textoTotal.includes("de baja")) return "#BF1D4B";
     if (textoTotal.includes("activo")) return "#043B0F";
     if (textoTotal.includes("sin registro")) return "#2D2836";
 
-    // Color por defecto al iniciar el repositorio (Solicitado: #211433)
     return "#211433";
 }
 
@@ -174,7 +189,7 @@ function filtrarMapa() {
         let cumpleFiltros = true;
 
         if (tipoFiltro === "AGUA" && !item.agua.includes("Suministro")) cumpleFiltros = false;
-        if (tipoFiltro === "LUZ" && !item.luz.includes("Suministro")) cumpleFiltros = false;
+        if (tipoFiltros === "LUZ" && !item.luz.includes("Suministro")) cumpleFiltros = false;
 
         if (empresaFiltro !== "TODAS") {
             if (!contenidoTotal.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
