@@ -3,69 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Suministros - Línea 2 y 4</title>
+    <title>Dashboard Gerencial de Suministros - Línea 2 y 4</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Título Principal -->
-    <div id="titulo-flotante">Control de Suministros (Agua y Electricidad) - Línea 2</div>
+    <!-- Contenedor Principal de Pantalla Dividida -->
+    <div id="dashboard-container">
+        
+        <!-- SECCIÓN IZQUIERDA: MAPA Y FILTROS (2/3 de pantalla) -->
+        <div id="seccion-mapa">
+            <!-- Título Principal -->
+            <div id="titulo-flotante">Control de Suministros (Agua y Electricidad) - L2 & L4</div>
 
-    <!-- Panel de Búsqueda y Filtros -->
-    <div id="panel-filtros">
-        <div class="filtro-grupo">
-            <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
-            <input type="text" id="input-buscar" placeholder="Ej: 7355727, E01, Luz..." onkeyup="filtrarMapa()">
+            <!-- Panel de Búsqueda y Filtros -->
+            <div id="panel-filtros">
+                <div class="filtro-grupo">
+                    <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
+                    <input type="text" id="input-buscar" placeholder="Ej: 7355727, E01, Luz..." onkeyup="filtrarMapa()">
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-tipo">Tipo:</label>
+                    <select id="select-tipo" onchange="filtrarMapa()">
+                        <option value="TODOS">Todos</option>
+                        <option value="AGUA">Agua</option>
+                        <option value="LUZ">Electricidad (Luz)</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-empresa">Empresa:</label>
+                    <select id="select-empresa" onchange="filtrarMapa()">
+                        <option value="TODAS">Todas</option>
+                        <option value="SEDAPAL">SEDAPAL</option>
+                        <option value="PLUZ">PLUZ ENERGÍA</option>
+                        <option value="LDS">LDS</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-estado">Estado:</label>
+                    <select id="select-estado" onchange="filtrarMapa()">
+                        <option value="TODOS">Todos</option>
+                        <option value="ACTIVO">Activo</option>
+                        <option value="EN PROCESO DE BAJA">En Proceso de Baja</option>
+                        <option value="DE BAJA">De Baja</option>
+                        <option value="SIN REGISTRO">Sin Registro</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label>&nbsp;</label>
+                    <button id="btn-limpiar" onclick="limpiarFiltros()">Quitar Filtros</button>
+                </div>
+            </div>
+
+            <!-- Leyenda de Estados en el Mapa -->
+            <div id="panel-leyenda-estados">
+                <span class="leyenda-titulo-est">ESTADOS DE SUMINISTRO</span>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #043B0F;"></span> Activo</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #913A14;"></span> En Proceso de Baja</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #BF1D4B;"></span> De Baja</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #2D2836;"></span> Sin Registro</div>
+            </div>
+
+            <!-- Contenedor del Mapa -->
+            <div id="map"></div>
         </div>
-        <div class="filtro-grupo">
-            <label for="select-tipo">Tipo:</label>
-            <select id="select-tipo" onchange="filtrarMapa()">
-                <option value="TODOS">Todos</option>
-                <option value="AGUA">Agua</option>
-                <option value="LUZ">Electricidad (Luz)</option>
-            </select>
+
+        <!-- SECCIÓN DERECHA: TABLAS GERENCIALES (1/3 de pantalla) -->
+        <div id="seccion-tablas">
+            <!-- Tabla Superior: Agua (#B5D8E8) -->
+            <div class="tabla-panel tabla-agua">
+                <div class="tabla-header">💧 Suministros de Agua (Sedapal / LDS)</div>
+                <div class="table-container">
+                    <table id="tabla-agua-content">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servicio</th>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Se inyecta dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabla Inferior: Luz (#EDE4CC) -->
+            <div class="tabla-panel tabla-luz">
+                <div class="tabla-header">⚡ Suministros de Electricidad (Pluz / LDS)</div>
+                <div class="table-container">
+                    <table id="tabla-luz-content">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servicio</th>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Se inyecta dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="filtro-grupo">
-            <label for="select-empresa">Empresa:</label>
-            <select id="select-empresa" onchange="filtrarMapa()">
-                <option value="TODAS">Todas</option>
-                <option value="SEDAPAL">SEDAPAL</option>
-                <option value="PLUZ">PLUZ ENERGÍA</option>
-                <option value="LDS">LDS</option>
-            </select>
-        </div>
-        <div class="filtro-grupo">
-            <label for="select-estado">Estado:</label>
-            <select id="select-estado" onchange="filtrarMapa()">
-                <option value="TODOS">Todos</option>
-                <option value="ACTIVO">Activo</option>
-                <option value="EN PROCESO DE BAJA">En Proceso de Baja</option>
-                <option value="DE BAJA">De Baja</option>
-                <option value="SIN REGISTRO">Sin Registro</option>
-            </select>
-        </div>
-        <!-- Botón para Quitar Filtros -->
-        <div class="filtro-grupo">
-            <label>&nbsp;</label>
-            <button id="btn-limpiar" onclick="limpiarFiltros()" style="background: #e11d48; color: #ffffff; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;">Quitar Filtros</button>
-        </div>
+
     </div>
 
-    <!-- Leyenda de Estados en el Mapa -->
-    <div id="panel-leyenda-estados">
-        <span class="leyenda-titulo-est">ESTADOS DE SUMINISTRO</span>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #043B0F;"></span> Activo</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #913A14;"></span> En Proceso de Baja</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #BF1D4B;"></span> De Baja</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #2D2836;"></span> Sin Registro</div>
-    </div>
-
-    <!-- Contenedor del Mapa -->
-    <div id="map"></div>
-
-    <!-- Librerías JS y Script -->
+    <!-- Librerías JS y Script Principal -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
 </body>
