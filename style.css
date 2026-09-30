@@ -12,6 +12,40 @@ body {
     z-index: 1;
 }
 
+/* Forzar escala de grises total en la capa de mapas de Leaflet/Google */
+.leaflet-tile-pane {
+    filter: grayscale(100%) contrast(110%) brightness(95%);
+    -webkit-filter: grayscale(100%) contrast(110%) brightness(95%);
+}
+
+/* Estructura visual de los pines flotantes con la ID */
+.pin-etiqueta-contenedor {
+    display: flex !important;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.punto-pin {
+    width: 14px;
+    height: 14px;
+    background-color: #FFC107;
+    border: 2px solid #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.etiqueta-id {
+    background: #FFFFFF;
+    padding: 2px 6px;
+    margin-left: 5px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1E293B;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
 /* Panel flotante de título */
 #titulo-flotante {
     position: absolute;
@@ -69,7 +103,7 @@ body {
     border-color: #38bdf8;
 }
 
-/* Estilos de Popup y Contenido */
+/* Estilos de Popup */
 .popup-header {
     font-weight: 700;
     font-size: 14px;
