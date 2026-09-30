@@ -133,11 +133,12 @@ L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
 
 let capaMarcadores = L.layerGroup().addTo(map);
 let todosLosMarcadores = [];
+let boundsGlobal = [];
 
 function cargarMapa() {
     capaMarcadores.clearLayers();
     todosLosMarcadores = [];
-    const bounds = [];
+    boundsGlobal = [];
 
     registrosSuministros.forEach(item => {
         const customIcon = L.divIcon({
@@ -168,11 +169,11 @@ function cargarMapa() {
         marker.itemData = item;
         todosLosMarcadores.push(marker);
         capaMarcadores.addLayer(marker);
-        bounds.push([item.lat, item.lng]);
+        boundsGlobal.push([item.lat, item.lng]);
     });
 
-    if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
     }
 }
 
@@ -214,11 +215,27 @@ function filtrarMapa() {
         }
     });
 
-    // Si el usuario busca un suministro específico o ID y hay resultado único, hacer zoom y abrir popup
     if (textoBusqueda.length > 0 && marcadoresVisibles.length === 1) {
         const unicoMarker = marcadoresVisibles[0];
         map.setView(unicoMarker.getLatLng(), 17, { animate: true });
         unicoMarker.openPopup();
+    }
+}
+
+// Función para restablecer los filtros y mostrar todos los IDs nuevamente
+function limpiarFiltros() {
+    document.getElementById('input-buscar').value = "";
+    document.getElementById('select-tipo').value = "TODOS";
+    document.getElementById('select-empresa').value = "TODAS";
+    document.getElementById('select-estado').value = "TODOS";
+
+    capaMarcadores.clearLayers();
+    todosLosMarcadores.forEach(marker => {
+        capaMarcadores.addLayer(marker);
+    });
+
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
     }
 }
 
