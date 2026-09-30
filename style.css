@@ -1,72 +1,145 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Suministros - Línea 2 y 4</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <!-- Título Principal -->
-    <div id="titulo-flotante">Control de Suministros (Agua y Electricidad) - Línea 2</div>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+}
 
-    <!-- Panel de Búsqueda y Filtros -->
-    <div id="panel-filtros">
-        <div class="filtro-grupo">
-            <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
-            <input type="text" id="input-buscar" placeholder="Ej: 7355727, E01, Luz..." onkeyup="filtrarMapa()">
-        </div>
-        <div class="filtro-grupo">
-            <label for="select-tipo">Tipo:</label>
-            <select id="select-tipo" onchange="filtrarMapa()">
-                <option value="TODOS">Todos</option>
-                <option value="AGUA">Agua</option>
-                <option value="LUZ">Electricidad (Luz)</option>
-            </select>
-        </div>
-        <div class="filtro-grupo">
-            <label for="select-empresa">Empresa:</label>
-            <select id="select-empresa" onchange="filtrarMapa()">
-                <option value="TODAS">Todas</option>
-                <option value="SEDAPAL">SEDAPAL</option>
-                <option value="PLUZ">PLUZ ENERGÍA</option>
-                <option value="LDS">LDS</option>
-            </select>
-        </div>
-        <div class="filtro-grupo">
-            <label for="select-estado">Estado:</label>
-            <select id="select-estado" onchange="filtrarMapa()">
-                <option value="TODOS">Todos</option>
-                <option value="ACTIVO">Activo</option>
-                <option value="EN PROCESO DE BAJA">En Proceso de Baja</option>
-                <option value="DE BAJA">De Baja</option>
-                <option value="SIN REGISTRO">Sin Registro</option>
-            </select>
-        </div>
-        <!-- Botón para Quitar Filtros -->
-        <div class="filtro-grupo">
-            <label>&nbsp;</label>
-            <button id="btn-limpiar" onclick="limpiarFiltros()" style="background: #e11d48; color: #ffffff; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px;">Quitar Filtros</button>
-        </div>
-    </div>
+#map {
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
 
-    <!-- Leyenda de Estados en el Mapa -->
-    <div id="panel-leyenda-estados">
-        <span class="leyenda-titulo-est">ESTADOS DE SUMINISTRO</span>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #043B0F;"></span> Activo</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #913A14;"></span> En Proceso de Baja</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #BF1D4B;"></span> De Baja</div>
-        <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #2D2836;"></span> Sin Registro</div>
-    </div>
+/* Forzar escala de grises total en la capa de mapas */
+.leaflet-tile-pane {
+    filter: grayscale(100%) contrast(110%) brightness(95%);
+    -webkit-filter: grayscale(100%) contrast(110%) brightness(95%);
+}
 
-    <!-- Contenedor del Mapa -->
-    <div id="map"></div>
+/* Color de fondo para la ventana de datos (popup): #C5DCDE */
+.leaflet-popup-content-wrapper {
+    background-color: #C5DCDE !important;
+    color: #1E293B;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
 
-    <!-- Librerías JS y Script -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+.leaflet-popup-tip {
+    background-color: #C5DCDE !important;
+}
+
+/* Estructura visual de los pines flotantes con la ID */
+.pin-etiqueta-contenedor {
+    display: flex !important;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.etiqueta-id {
+    background: #FFFFFF;
+    padding: 2px 6px;
+    margin-left: 5px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1E293B;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Panel flotante de título */
+#titulo-flotante {
+    position: absolute;
+    top: 15px;
+    left: 60px;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1px solid #334155;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Panel de Búsqueda y Filtros Superior Derecho */
+#panel-filtros {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+}
+
+.filtro-grupo label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.filtro-grupo input, .filtro-grupo select {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
+}
+
+.filtro-grupo input:focus, .filtro-grupo select:focus {
+    border-color: #38bdf8;
+}
+
+/* Leyenda de Estados en la Pantalla */
+#panel-leyenda-estados {
+    position: absolute;
+    bottom: 25px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.leyenda-titulo-est {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.leyenda-fila {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.leyenda-punto {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid #ffffff;
+}
