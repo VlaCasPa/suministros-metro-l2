@@ -12,105 +12,78 @@ body {
     z-index: 1;
 }
 
-/* Forzar escala de grises y contraste óptimo en el mapa base de Google */
-.mapa-google-gris {
-    filter: grayscale(100%) contrast(115%) brightness(95%);
-    -webkit-filter: grayscale(100%) contrast(115%) brightness(95%);
-}
-
-/* Estilo para las etiquetas flotantes de los pines (IDs visibles) */
-.id-tooltip {
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid #38bdf8;
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
 /* Panel flotante de título */
 #titulo-flotante {
     position: absolute;
     top: 15px;
     left: 60px;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(15, 23, 42, 0.95);
     padding: 10px 18px;
     border-radius: 8px;
     font-weight: 700;
     font-size: 15px;
     border: 1px solid #334155;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Panel de KPIs */
-#panel-kpis {
-    position: absolute;
-    bottom: 25px;
-    left: 20px;
-    z-index: 1000;
-    display: flex;
-    gap: 10px;
-}
-
-.kpi-card {
-    background: rgba(15, 23, 42, 0.9);
-    padding: 10px 14px;
-    border-radius: 6px;
-    border: 1px solid #334155;
-    text-align: center;
-    min-width: 90px;
-}
-
-.kpi-title {
-    display: block;
-    font-size: 10px;
-    text-transform: uppercase;
-    color: #94a3b8;
-    margin-bottom: 3px;
-}
-
-.kpi-value {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-/* Panel de Leyenda */
-#panel-leyenda {
+/* Panel de Búsqueda y Filtros Superior Derecho */
+#panel-filtros {
     position: absolute;
     top: 15px;
     right: 20px;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.9);
-    padding: 12px 15px;
+    background: rgba(15, 23, 42, 0.95);
+    padding: 12px 16px;
     border-radius: 8px;
     border: 1px solid #334155;
-    font-size: 12px;
-}
-
-.leyenda-titulo {
-    font-weight: 700;
-    display: block;
-    margin-bottom: 6px;
-    color: #94a3b8;
-}
-
-.leyenda-item {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     display: flex;
-    align-items: center;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+}
+
+.filtro-grupo label {
+    font-size: 11px;
+    color: #94a3b8;
     margin-bottom: 4px;
+    font-weight: 600;
 }
 
-.leyenda-color {
-    width: 12px;
-    height: 12px;
-    display: inline-block;
-    margin-right: 8px;
-    border-radius: 2px;
+.filtro-grupo input, .filtro-grupo select {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    outline: none;
 }
 
-.color-inicial { background-color: #64748b; }
-.color-residual { background-color: #ec4899; }
-.color-liberado { background-color: #06b6d4; }
+.filtro-grupo input:focus, .filtro-grupo select:focus {
+    border-color: #38bdf8;
+}
+
+/* Estilos de Popup y Contenido */
+.popup-header {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+}
+
+.popup-section {
+    font-size: 12px;
+    color: #334155;
+    background: #f8fafc;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
