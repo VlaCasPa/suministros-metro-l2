@@ -129,25 +129,22 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
     return "#211433";
 }
 
-// Función para parsear texto de suministros y extraer filas tabulares con columnas: ID, SERVICIO, EMPRESA, TIPO, ESTADO
 function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre) {
     let filasHtml = "";
     if (!textoSuministros || textoSuministros.includes("Sin registro")) {
         return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
             <td><b>${idEstrucutra}</b></td>
+            <td>-</td>
+            <td>-</td>
             <td>${servicioNombre}</td>
-            <td>-</td>
-            <td>-</td>
             <td>SIN REGISTRO</td>
         </tr>`;
     }
 
-    // Separar por saltos de línea o viñetas
     let lineas = textoSuministros.split(/<br>|\n|•|⚡/);
     lineas.forEach(linea => {
         let limpio = linea.trim();
         if (limpiadoValido(limpio)) {
-            // Ejemplo: 7364644-0 (SEDAPAL) - Estado: ACTIVO
             let empresa = "SEDAPAL";
             if (limpio.toUpperCase().includes("PLUZ")) empresa = "PLUZ ENERGÍA";
             else if (limpio.toUpperCase().includes("LDS")) empresa = "LDS";
@@ -170,7 +167,7 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre
         }
     });
 
-    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>${servicioNombre}</td><td>-</td><td>-</td><td>SIN REGISTRO</td></tr>`;
+    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td>${servicioNombre}</td><td>SIN REGISTRO</td></tr>`;
 }
 
 function limpiadoValido(str) {
@@ -178,7 +175,6 @@ function limpiadoValido(str) {
 }
 
 function cargarTablas(registrosFiltrados) {
-    // Ordenar alfabéticamente por ID
     let ordenados = [...registrosFiltrados].sort((a, b) => a.id.localeCompare(b.id));
 
     let tbodyAgua = "";
@@ -281,7 +277,7 @@ function filtrarMapa() {
         let cumpleFiltros = true;
 
         if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro")) cumpleFiltros = false;
-        if (tipoFiltros === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
+        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
 
         if (empresaFiltro !== "TODAS") {
             if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
@@ -315,7 +311,6 @@ function filtrarMapa() {
         }
     });
 
-    // Actualizar tablas con la data filtrada
     cargarTablas(registrosFiltradosTablas);
 
     if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
