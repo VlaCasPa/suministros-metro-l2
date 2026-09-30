@@ -1,7 +1,6 @@
 // Inicialización del mapa base
 const map = L.map('map').setView([-12.0464, -77.0428], 13);
 
-// Capa base limpia estándar (el color gris se fuerza mediante la clase CSS del mapa)
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
@@ -16,10 +15,13 @@ function cargarMapa() {
     todosLosMarcadores = [];
     const bounds = [];
 
-    if (typeof registrosSuministros === 'undefined') return;
+    if (typeof registrosSuministros === 'undefined') {
+        console.error("No se encontró el archivo datos.js o la matriz registrosSuministros.");
+        return;
+    }
 
     registrosSuministros.forEach(item => {
-        // Icono personalizado con contenedor visible para la ID
+        // Icono personalizado con ID visible
         const customIcon = L.divIcon({
             className: 'pin-etiqueta-contenedor',
             html: `
@@ -83,10 +85,7 @@ function filtrarMapa() {
         }
 
         if (estadoFiltro !== "TODOS") {
-            let estadoBusqueda = "";
-            if (estadoFiltro === "ACTIVO") estadoBusqueda = "activo";
-            if (estadoFiltro === "BAJA") estadoBusqueda = "baja"; // Detecta "en proceso de baja" o "baja"
-
+            let estadoBusqueda = estadoFiltro === "ACTIVO" ? "activo" : "baja";
             if (!contenidoTotal.includes(estadoBusqueda)) cumpleFiltros = false;
         }
 
