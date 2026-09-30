@@ -9,24 +9,24 @@ const registrosSuministros = [
         tramo: "L2", 
         lat: -12.056998, 
         lng: -77.115102, 
-        agua: "• Suministro: 7308469-1 (SEDAPAL) - Estado: EN PROCESO DE BAJA | Obs: En proceso de baja (setiembre de 2026)<br>" +
+        agua: "• Suministro: 7308469-1 (SEDAPAL) - Estado: EN PROCESO DE BAJA<br>" +
               "• Suministro: 7688375 (SEDAPAL) - Estado: ACTIVO<br>" +
-              "• Suministro: 7340529-2 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 1)<br>" +
-              "• Suministro: 7340545-8 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 2)<br>" +
-              "• Suministro: 7340549-0 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 3)<br>" +
-              "• Suministro: 7340553-2 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 4)<br>" +
-              "• Suministro: 7340565-6 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 5)<br>" +
-              "• Suministro: 7340568-0 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 6)<br>" +
-              "• Suministro: 7340569-8 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 7)<br>" +
-              "• Suministro: 7340578-9 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 8)<br>" +
-              "• Suministro: 7340579-7 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 9)<br>" +
-              "• Suministro: 7340580-5 (SEDAPAL) - Estado: DE BAJA | Obs: E03(POZO 10)", 
+              "• Suministro: 7340529-2 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340545-8 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340549-0 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340553-2 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340565-6 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340568-0 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340569-8 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340578-9 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340579-7 (SEDAPAL) - Estado: DE BAJA<br>" +
+              "• Suministro: 7340580-5 (SEDAPAL) - Estado: DE BAJA", 
         luz: "⚡ Suministro: 3036716 (PLUZ) - Estado: ACTIVO" 
     },
     { id: "E04", tramo: "L2", lat: -12.054839, lng: -77.104798, agua: "• Suministro: 7173036-0 (SEDAPAL) - Estado: ACTIVO | Obs: TBM<br>• Suministro: 7451587-5 (SEDAPAL) - Estado: DE BAJA<br>• Suministro: 7819600 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3239253 (PLUZ) - Estado: ACTIVO" },
     { id: "E05", tramo: "L2", lat: -12.053715, lng: -77.098749, agua: "• Suministro: 7688375-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7598239-7 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7998992 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082040 (PLUZ) - Estado: ACTIVO" },
     { id: "E06", tramo: "L2", lat: -12.051975, lng: -77.088926, agua: "• Suministro: 7465247-0 (SEDAPAL) - Estado: EN PROCESO DE BAJA<br>• Suministro: 7876299-4 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3073811 (PLUZ) - Estado: ACTIVO" },
-    { id: "E07", tramo: "L2", lat: -12.055653, lng: -77.081683, agua: "• Suministro: 7734738-3 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3245476 (PLUZ) - Estado: ACTIVO | Obs: EN TRÁMITE" },
+    { id: "E07", tramo: "L2", lat: -12.055653, lng: -77.081683, agua: "• Suministro: 7734738-3 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3245476 (PLUZ) - Estado: ACTIVO" },
     { id: "E08", tramo: "L2", lat: -12.059411, lng: -77.075806, agua: "• Suministro: 7554853-7 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082020 (PLUZ) - Estado: ACTIVO" },
     { id: "E09", tramo: "L2", lat: -12.057899, lng: -77.068359, agua: "• Suministro: 7554875-0 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7555018-6 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3082036 (PLUZ) - Estado: ACTIVO" },
     { id: "E10", tramo: "L2", lat: -12.056323, lng: -77.060617, agua: "• Suministro: 7463219-1 (SEDAPAL) - Estado: ACTIVO<br>• Suministro: 7485272-4 (SEDAPAL) - Estado: ACTIVO", luz: "⚡ Suministro: 3073881 (PLUZ) - Estado: ACTIVO" },
@@ -101,7 +101,8 @@ const registrosSuministros = [
 ];
 
 // Inicialización del mapa
-const map = L.map('map').setView([-12.0464, -77.0428], 13);
+const map = L.map('map', { zoomControl: false }).setView([-12.0464, -77.0428], 13);
+L.control.zoom({ position: 'topleft' }).addTo(map);
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -112,6 +113,7 @@ L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
 let capaMarcadores = L.layerGroup().addTo(map);
 let todosLosMarcadores = [];
 let boundsGlobal = [];
+let mapaRegistrosPorId = {};
 
 function obtenerColorPin(textoTotal, estadoFiltroSelect) {
     if (estadoFiltroSelect === "ACTIVO") return "#043B0F";
@@ -127,10 +129,90 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
     return "#211433";
 }
 
+// Función para parsear texto de suministros y extraer filas tabulares con columnas: ID, SERVICIO, EMPRESA, TIPO, ESTADO
+function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre) {
+    let filasHtml = "";
+    if (!textoSuministros || textoSuministros.includes("Sin registro")) {
+        return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
+            <td><b>${idEstrucutra}</b></td>
+            <td>${servicioNombre}</td>
+            <td>-</td>
+            <td>-</td>
+            <td>SIN REGISTRO</td>
+        </tr>`;
+    }
+
+    // Separar por saltos de línea o viñetas
+    let lineas = textoSuministros.split(/<br>|\n|•|⚡/);
+    lineas.forEach(linea => {
+        let limpio = linea.trim();
+        if (limpiadoValido(limpio)) {
+            // Ejemplo: 7364644-0 (SEDAPAL) - Estado: ACTIVO
+            let empresa = "SEDAPAL";
+            if (limpio.toUpperCase().includes("PLUZ")) empresa = "PLUZ ENERGÍA";
+            else if (limpio.toUpperCase().includes("LDS")) empresa = "LDS";
+
+            let estado = "ACTIVO";
+            let up = limpio.toUpperCase();
+            if (up.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
+            else if (up.includes("DE BAJA")) estado = "DE BAJA";
+
+            let numSuministro = limpio.split("(")[0].replace("Suministro:", "").trim();
+            if (!numSuministro) numSuministro = limpio;
+
+            filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
+                <td><b>${idEstrucutra}</b></td>
+                <td>${numSuministro}</td>
+                <td>${empresa}</td>
+                <td>${servicioNombre}</td>
+                <td>${estado}</td>
+            </tr>`;
+        }
+    });
+
+    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>${servicioNombre}</td><td>-</td><td>-</td><td>SIN REGISTRO</td></tr>`;
+}
+
+function limpiadoValido(str) {
+    return str.length > 3 && (str.includes("Suministro") || str.includes("-") || /\d/.test(str));
+}
+
+function cargarTablas(registrosFiltrados) {
+    // Ordenar alfabéticamente por ID
+    let ordenados = [...registrosFiltrados].sort((a, b) => a.id.localeCompare(b.id));
+
+    let tbodyAgua = "";
+    let tbodyLuz = "";
+
+    ordenados.forEach(item => {
+        tbodyAgua += parsearSuministrosATabla(item.id, item.agua, "AGUA");
+        tbodyLuz += parsearSuministrosATabla(item.id, item.luz, "LUZ");
+    });
+
+    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua;
+    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz;
+}
+
+function centrarEnId(idBuscado) {
+    let markerObj = mapaRegistrosPorId[idBuscado];
+    if (markerObj) {
+        map.flyTo(markerObj.getLatLng(), 17, { animate: true, duration: 0.8 });
+        markerObj.openPopup();
+    }
+}
+
+function resaltarPin(idBuscado) {
+    let markerObj = mapaRegistrosPorId[idBuscado];
+    if (markerObj) {
+        markerObj.openPopup();
+    }
+}
+
 function cargarMapa(estadoFiltroSelect = "TODOS") {
     capaMarcadores.clearLayers();
     todosLosMarcadores = [];
     boundsGlobal = [];
+    mapaRegistrosPorId = {};
 
     registrosSuministros.forEach(item => {
         const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
@@ -170,9 +252,12 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
         };
 
         todosLosMarcadores.push(marker);
+        mapaRegistrosPorId[item.id] = marker;
         capaMarcadores.addLayer(marker);
         boundsGlobal.push([item.lat, item.lng]);
     });
+
+    cargarTablas(registrosSuministros);
 
     if (boundsGlobal.length > 0 && map.getBounds().isValid() === false) {
         map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
@@ -187,6 +272,7 @@ function filtrarMapa() {
 
     capaMarcadores.clearLayers();
     let marcadoresVisibles = [];
+    let registrosFiltradosTablas = [];
 
     todosLosMarcadores.forEach(marker => {
         const data = marker.itemData;
@@ -195,7 +281,7 @@ function filtrarMapa() {
         let cumpleFiltros = true;
 
         if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro")) cumpleFiltros = false;
-        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
+        if (tipoFiltros === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
 
         if (empresaFiltro !== "TODAS") {
             if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
@@ -220,14 +306,21 @@ function filtrarMapa() {
 
             capaMarcadores.addLayer(marker);
             marcadoresVisibles.push(marker);
+            registrosFiltradosTablas.push({
+                id: data.id,
+                tramo: data.tramo,
+                agua: data.agua,
+                luz: data.luz
+            });
         }
     });
 
-    // CENTRADO AUTOMÁTICO PERFECTO PARA WEB Y CELULAR
+    // Actualizar tablas con la data filtrada
+    cargarTablas(registrosFiltradosTablas);
+
     if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
         if (marcadoresVisibles.length === 1) {
             const unicoMarker = marcadoresVisibles[0];
-            // flyTo proporciona una transición suave y precisa al centro de la pantalla tanto en desktop como en móvil
             map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
             unicoMarker.openPopup();
         } else {
