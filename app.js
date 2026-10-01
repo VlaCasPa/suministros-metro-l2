@@ -339,6 +339,33 @@ function limpiarFiltros() {
     }
 }
 
+// ==========================================
+// CONTROL DE VENTANA DE ADVERTENCIA Y LEGAL
+// ==========================================
+const STORAGE_KEY_DISCLAIMER = "ccm2l_suministros_disclaimer_accepted_v1";
+
+function verificarDisclaimer() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (!localStorage.getItem(STORAGE_KEY_DISCLAIMER)) {
+        if (modal) modal.style.display = 'flex';
+    } else {
+        if (modal) modal.style.display = 'none';
+    }
+}
+
+function aceptarDisclaimer() {
+    localStorage.setItem(STORAGE_KEY_DISCLAIMER, "true");
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+}
+
 window.onload = function() {
+    verificarDisclaimer();
     cargarMapa("TODOS");
 };
