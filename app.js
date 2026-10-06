@@ -46,7 +46,6 @@ function parseCSV(text) {
     return lines;
 }
 
-// Conversión segura de números con coma decimal
 function parsearNumeroLatLon(val) {
     if (!val) return null;
     let limpio = val.trim().replace(',', '.');
@@ -99,36 +98,22 @@ async function cargarDatosDesdeHojas() {
                 let docVal = idxDoc !== -1 && cols[idxDoc] ? cols[idxDoc].trim() : "-";
 
                 if (sumNum) {
-                    datosBrutosAgua.push({
-                        id: id,
-                        suministro: sumNum,
-                        empresa: empresa,
-                        estado: estado,
-                        tipo: tipoVal,
-                        documento: docVal,
-                        tramo: tramo
-                    });
+                    datosBrutosAgua.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
                 }
 
                 let lat = parsearNumeroLatLon(cols[idxLat]);
                 let lng = parsearNumeroLatLon(cols[idxLng]);
 
                 if (!mapaEstructuras[id]) {
-                    mapaEstructuras[id] = {
-                        id: id,
-                        tramo: tramo,
-                        lat: lat !== null ? lat : -12.0464,
-                        lng: lng !== null ? lng : -77.0428,
-                        aguaList: [],
-                        luzList: []
-                    };
+                    mapaEstructuras[id] = { id, tramo, lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
                 } else {
                     if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
                 if (sumNum) {
-                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}${docVal !== '-' ? ' | Obs: ' + docVal : ''}`);
+                    // Formato compacto solicitado: 💧 7598195-1 / Tipo: DEFINITIVO / Estado: ACTIVO
+                    mapaEstructuras[id].aguaList.push(`<span class="popup-item-line">💧 <b>${sumNum}</b> / Tipo: <b>${tipoVal}</b> / Estado: <b>${estado}</b></span>`);
                 }
             }
         }
@@ -160,36 +145,22 @@ async function cargarDatosDesdeHojas() {
                 let docVal = idxDoc !== -1 && cols[idxDoc] ? cols[idxDoc].trim() : "-";
 
                 if (sumNum) {
-                    datosBrutosLuz.push({
-                        id: id,
-                        suministro: sumNum,
-                        empresa: empresa,
-                        estado: estado,
-                        tipo: tipoVal,
-                        documento: docVal,
-                        tramo: tramo
-                    });
+                    datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
                 }
 
                 let lat = parsearNumeroLatLon(cols[idxLat]);
                 let lng = parsearNumeroLatLon(cols[idxLng]);
 
                 if (!mapaEstructuras[id]) {
-                    mapaEstructuras[id] = {
-                        id: id,
-                        tramo: tramo,
-                        lat: lat !== null ? lat : -12.0464,
-                        lng: lng !== null ? lng : -77.0428,
-                        aguaList: [],
-                        luzList: []
-                    };
+                    mapaEstructuras[id] = { id, tramo, lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
                 } else {
                     if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
                 if (sumNum) {
-                    mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}`);
+                    // Formato compacto solicitado: ⚡ 3201433 (PLUZ) / Tipo: DEFINITIVO / Estado: ACTIVO
+                    mapaEstructuras[id].luzList.push(`<span class="popup-item-line">⚡ <b>${sumNum} (${empresa})</b> / Tipo: <b>${tipoVal}</b> / Estado: <b>${estado}</b></span>`);
                 }
             }
         }
@@ -199,8 +170,8 @@ async function cargarDatosDesdeHojas() {
             tramo: item.tramo,
             lat: item.lat,
             lng: item.lng,
-            agua: item.aguaList.length > 0 ? item.aguaList.join("<br>") : "Sin registro de agua",
-            luz: item.luzList.length > 0 ? item.luzList.join("<br>") : "Sin registro de luz"
+            agua: item.aguaList.length > 0 ? item.aguaList.join("") : "Sin registro de agua",
+            luz: item.luzList.length > 0 ? item.luzList.join("") : "Sin registro de luz"
         }));
 
         cargarMapa("TODOS");
@@ -211,14 +182,11 @@ async function cargarDatosDesdeHojas() {
     }
 }
 
-// Función de ordenamiento: L4 primero (alfabético), luego L2 (alfabético)
 function ordenarListaTramo(a, b) {
     let tramA = (a.tramo || "L2").toUpperCase();
     let tramB = (b.tramo || "L2").toUpperCase();
-
     if (tramA === "L4" && tramB !== "L4") return -1;
     if (tramA !== "L4" && tramB === "L4") return 1;
-
     return a.id.localeCompare(b.id);
 }
 
@@ -243,56 +211,51 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
             <td><b>${idEstrucutra}</b></td>
             <td>-</td>
             <td>-</td>
-            <td>-</td>
-            <td>SIN REGISTRO</td>
+            <td class="col-tipo">-</td>
+            <td class="col-estado">SIN REGISTRO</td>
         </tr>`;
     }
 
-    let lineas = textoSuministros.split(/<br>|\n|•|⚡/);
-    lineas.forEach(linea => {
-        let limpio = linea.trim();
-        if (limpiadoValido(limpio)) {
-            let empresa = "SEDAPAL";
-            let upLimpio = limpio.toUpperCase();
-            if (upLimpio.includes("PLUZ")) empresa = "PLUZ ENERGÍA";
-            else if (upLimpio.includes("LDS")) empresa = "LDS";
+    // Como ahora usamos etiquetas HTML compactas (<span class="popup-item-line">...), parseamos por partes
+    let divisiones = textoSuministros.split('</span>');
+    divisiones.forEach(div => {
+        if (!div.trim()) return;
+        let limpio = div.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        
+        let empresa = "SEDAPAL";
+        let upLimpio = limpio.toUpperCase();
+        if (upLimpio.includes("PLUZ")) empresa = "PLUZ ENERGÍA";
+        else if (upLimpio.includes("LDS")) empresa = "LDS";
 
-            let estado = "ACTIVO";
-            if (upLimpio.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
-            else if (upLimpio.includes("DE BAJA")) estado = "DE BAJA";
+        let estado = "ACTIVO";
+        if (upLimpio.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
+        else if (upLimpio.includes("DE BAJA")) estado = "DE BAJA";
 
-            let tipoVal = "-";
-            if (limpio.includes("Tipo:")) {
-                let partes = limpio.split("Tipo:");
-                if (partes[1]) {
-                    tipoVal = partes[1].split("-")[0].trim();
-                }
+        let tipoVal = "-";
+        if (limpio.includes("Tipo:")) {
+            let partes = limpio.split("Tipo:");
+            if (partes[1]) {
+                tipoVal = partes[1].split("/")[0].trim();
             }
-
-            let numSuministro = limpio.split("(")[0].replace("Suministro:", "").trim();
-            if (!numSuministro) numSuministro = limpio;
-
-            filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
-                <td><b>${idEstrucutra}</b></td>
-                <td>${numSuministro}</td>
-                <td>${empresa}</td>
-                <td>${tipoVal}</td>
-                <td>${estado}</td>
-            </tr>`;
         }
+
+        let numSuministro = limpio.split("/")[0].replace("💧", "").replace("⚡", "").trim();
+        if (!numSuministro) numSuministro = limpio;
+
+        filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
+            <td><b>${idEstrucutra}</b></td>
+            <td>${numSuministro}</td>
+            <td>${empresa}</td>
+            <td class="col-tipo">${tipoVal}</td>
+            <td class="col-estado">${estado}</td>
+        </tr>`;
     });
 
-    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td></tr>`;
-}
-
-function limpiadoValido(str) {
-    return str.length > 3 && (str.includes("Suministro") || str.includes("-") || /\d/.test(str));
+    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td class="col-tipo">-</td><td class="col-estado">SIN REGISTRO</td></tr>`;
 }
 
 function cargarTablas(registrosFiltrados) {
-    // Aplicar ordenamiento: L4 primero, luego L2, ambos alfabéticos por ID
     let ordenados = [...registrosFiltrados].sort(ordenarListaTramo);
-
     let tbodyAgua = "";
     let tbodyLuz = "";
 
@@ -303,6 +266,80 @@ function cargarTablas(registrosFiltrados) {
 
     document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua;
     document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz;
+
+    // Actualizar opciones de los desplegables de filtro en tabla dinámicamente
+    poblarFiltrosTablas();
+    aplicarFiltrosTablaInternos();
+}
+
+// Poblar los desplegables de filtros de las tablas con valores únicos existentes
+function poblarFiltrosTablas() {
+    ['agua', 'luz'].forEach(tipoTab => {
+        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
+        if (!selectTipo || !selectEstado) return;
+
+        let valTipoActual = selectTipo.value;
+        let valEstadoActual = selectEstado.value;
+
+        let tiposSet = new Set();
+        let estadosSet = new Set();
+
+        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
+        rows.forEach(r => {
+            let tCell = r.querySelector('.col-tipo');
+            let eCell = r.querySelector('.col-estado');
+            if (tCell && tCell.innerText.trim() !== '-') tiposSet.add(tCell.innerText.trim());
+            if (eCell && eCell.innerText.trim() !== '') estadosSet.add(eCell.innerText.trim());
+        });
+
+        let htmlTipo = '<option value="TODOS">Todos</option>';
+        Array.from(tiposSet).sort().forEach(t => {
+            htmlTipo += `<option value="${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
+        });
+        selectTipo.innerHTML = htmlTipo;
+
+        let htmlEstado = '<option value="TODOS">Todos</option>';
+        Array.from(estadosSet).sort().forEach(e => {
+            htmlEstado += `<option value="${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
+        });
+        selectEstado.innerHTML = htmlEstado;
+    });
+}
+
+// Filtrar las filas de las tablas directamente mediante los desplegables internos
+function aplicarFiltrosTablas() {
+    aplicarFiltrosTablaInternos();
+}
+
+function aplicarFiltrosTablaInternos() {
+    ['agua', 'luz'].forEach(tipoTab => {
+        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
+        if (!selectTipo || !selectEstado) return;
+
+        let filtroTipo = selectTipo.value;
+        let filtroEstado = selectEstado.value;
+
+        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
+        rows.forEach(r => {
+            let tCell = r.querySelector('.col-tipo');
+            let eCell = r.querySelector('.col-estado');
+            if (!tCell || !eCell) return;
+
+            let valTipo = tCell.innerText.trim();
+            let valEstado = eCell.innerText.trim();
+
+            let cumpleTipo = (filtroTipo === 'TODOS' || valTipo === filtroTipo);
+            let cumpleEstado = (filtroEstado === 'TODOS' || valEstado === filtroEstado);
+
+            if (cumpleTipo && cumpleEstado) {
+                r.style.display = '';
+            } else {
+                r.style.display = 'none';
+            }
+        });
+    });
 }
 
 function centrarEnId(idBuscado) {
@@ -327,7 +364,7 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
     mapaRegistrosPorId = {};
 
     registrosSuministros.forEach(item => {
-        const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
+        const contenidoTotal = `${item.id}${item.tramo} ${item.agua}${item.luz}`.toLowerCase();
         const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
 
         const customIcon = L.divIcon({
@@ -340,210 +377,16 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
             iconAnchor: [7, 12]
         });
 
+        // Popup rediseñado y compacto solicitado (icono de gotita pequeña, filas ajustadas)
         const popupContent = `
-            <div style="font-family: 'Inter', sans-serif; min-width: 240px;">
-                <div style="font-weight: 700; font-size: 14px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
-                <div style="font-size: 12px; color: #1e293b; background: rgba(255,255,255,0.6); padding: 6px 8px; border-radius: 4px; margin-top: 4px;">
-                    <b>💧 AGUA (SEDAPAL):</b><br>${item.agua}
+            <div style="font-family: 'Inter', sans-serif; min-width: 250px; font-size: 11.5px; color: #1e293b;">
+                <div style="font-weight: 700; font-size: 13px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
+                
+                <div style="background: #eaf2f8; padding: 5px 7px; border-radius: 4px; margin-bottom: 5px;">
+                    <div style="font-weight: 700; font-size: 10px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
+                    ${item.agua}
                 </div>
-                <div style="font-size: 12px; color: #1e293b; background: rgba(255,255,255,0.6); padding: 6px 8px; border-radius: 4px; margin-top: 6px;">
-                    <b>⚡ ELECTRICIDAD (LUZ):</b><br>${item.luz}
-                </div>
-            </div>
-        `;
 
-        const marker = L.marker([item.lat, item.lng], { icon: customIcon });
-        marker.bindPopup(popupContent);
-        
-        marker.itemData = {
-            id: item.id,
-            tramo: item.tramo,
-            agua: item.agua,
-            luz: item.luz,
-            textoBusqueda: contenidoTotal
-        };
-
-        todosLosMarcadores.push(marker);
-        mapaRegistrosPorId[item.id] = marker;
-        capaMarcadores.addLayer(marker);
-        boundsGlobal.push([item.lat, item.lng]);
-    });
-
-    cargarTablas(registrosSuministros);
-
-    if (boundsGlobal.length > 0 && map.getBounds().isValid() === false) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
-    }
-}
-
-function filtrarMapa() {
-    const textoBusqueda = document.getElementById('input-buscar').value.toLowerCase().trim();
-    const tipoFiltro = document.getElementById('select-tipo').value;
-    const empresaFiltro = document.getElementById('select-empresa').value;
-    const estadoFiltro = document.getElementById('select-estado').value;
-
-    capaMarcadores.clearLayers();
-    let marcadoresVisibles = [];
-    let registrosFiltradosTablas = [];
-
-    todosLosMarcadores.forEach(marker => {
-        const data = marker.itemData;
-        
-        const cumpleTexto = textoBusqueda === "" || data.textoBusqueda.includes(textoBusqueda);
-        let cumpleFiltros = true;
-
-        if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro")) cumpleFiltros = false;
-        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro")) cumpleFiltros = false;
-
-        if (empresaFiltro !== "TODAS") {
-            if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (estadoFiltro !== "TODOS") {
-            if (!data.textoBusqueda.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (cumpleTexto && cumpleFiltros) {
-            const colorPin = obtenerColorPin(data.textoBusqueda, estadoFiltro);
-            const customIcon = L.divIcon({
-                className: 'pin-etiqueta-contenedor',
-                html: `
-                    <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${data.id}</div>
-                `,
-                iconSize: [80, 24],
-                iconAnchor: [7, 12]
-            });
-            marker.setIcon(customIcon);
-
-            capaMarcadores.addLayer(marker);
-            marcadoresVisibles.push(marker);
-            registrosFiltradosTablas.push({
-                id: data.id,
-                tramo: data.tramo,
-                agua: data.agua,
-                luz: data.luz
-            });
-        }
-    });
-
-    cargarTablas(registrosFiltradosTablas);
-
-    if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
-        if (marcadoresVisibles.length === 1) {
-            const unicoMarker = marcadoresVisibles[0];
-            map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
-            unicoMarker.openPopup();
-        } else {
-            const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
-            if (grupoBounds.isValid()) {
-                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16, animate: true });
-            }
-        }
-    }
-}
-
-function limpiarFiltros() {
-    document.getElementById('input-buscar').value = "";
-    document.getElementById('select-tipo').value = "TODOS";
-    document.getElementById('select-empresa').value = "TODAS";
-    document.getElementById('select-estado').value = "TODOS";
-
-    cargarMapa("TODOS");
-    if (boundsGlobal.length > 0) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
-    }
-}
-
-// ==========================================
-// GENERACIÓN DE REPORTES EXCEL PROFESIONALES
-// ==========================================
-function exportarExcel(tipoServicio) {
-    let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
-    let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
-    
-    // Ordenar datos (L4 primero, luego L2, alfabético por ID)
-    let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
-
-    // Obtener fecha y hora actual formateada
-    let ahora = new Date();
-    let fechaStr = ahora.toLocaleDateString('es-PE');
-    let horaStr = ahora.toLocaleTimeString('es-PE');
-    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
-
-    // Construir matriz de datos para SheetJS
-    let wsData = [
-        [tituloReporte],
-        [timestampStr],
-        [], // Fila en blanco
-        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO"] // Cabeceras exactas
-    ];
-
-    datosOrdenados.forEach(item => {
-        wsData.push([
-            item.id,
-            item.suministro,
-            item.empresa,
-            item.estado,
-            item.tipo,
-            item.documento
-        ]);
-    });
-
-    // Crear libro de trabajo y hoja
-    let wb = XLSX.utils.book_new();
-    let ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    // Añadir formato de ancho automático de columnas
-    let colWidths = [
-        {wch: 12}, // ID
-        {wch: 18}, // SUMINISTRO
-        {wch: 15}, // EMPRESA
-        {wch: 22}, // ESTADO
-        {wch: 15}, // TIPO
-        {wch: 25}  // DOCUMENTO
-    ];
-    ws['!cols'] = colWidths;
-
-    // Agregar hoja al libro
-    XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
-
-    // Nombre del archivo de salida
-    let nombreArchivo = tipoServicio === 'AGUA' ? `Reporte_Suministros_Agua_CCM2L.xlsx` : `Reporte_Suministros_Electricidad_CCM2L.xlsx`;
-
-    // Descargar archivo Excel
-    XLSX.writeFile(wb, nombreArchivo);
-}
-
-// ==========================================
-// CONTROL DE VENTANA DE ADVERTENCIA Y LEGAL
-// ==========================================
-const STORAGE_KEY_DISCLAIMER = "ccm2l_suministros_disclaimer_accepted_v1";
-
-function verificarDisclaimer() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (!localStorage.getItem(STORAGE_KEY_DISCLAIMER)) {
-        if (modal) modal.style.display = 'flex';
-    } else {
-        if (modal) modal.style.display = 'none';
-    }
-}
-
-function aceptarDisclaimer() {
-    localStorage.setItem(STORAGE_KEY_DISCLAIMER, "true");
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        modal.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
-}
-
-// Inicialización general al cargar la ventana
-window.onload = function() {
-    verificarDisclaimer();
-    inicializarMapaBase();
-    cargarDatosDesdeHojas();
-};
+                <div style="background: #fef9e7; padding: 5px 7px; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 10px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
+                    ${item.luz}
