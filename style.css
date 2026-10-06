@@ -216,6 +216,32 @@ body {
     font-weight: 700;
     font-size: 12px;
     text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Botón de Reporte Excel Profesional */
+.btn-reporte-excel {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-reporte-excel:hover {
+    background: #1d4ed8;
+}
+
+.btn-reporte-excel:active {
+    transform: scale(0.96);
 }
 
 .table-container {
