@@ -372,7 +372,6 @@ tr.fila-interactiva {
     }
 }
 
-
 /* ==========================================
    DISEÑO MÓVIL / CELULAR (PANTALLA APILADA)
    ========================================== */
@@ -386,13 +385,11 @@ tr.fila-interactiva {
         height: auto;
     }
 
-    /* El mapa ocupa exactamente el 70% de la altura de la pantalla móvil */
     #seccion-mapa {
         width: 100vw;
         height: 70vh;
     }
 
-    /* Las tablas ocupan el resto debajo del mapa */
     #seccion-tablas {
         width: 100vw;
         height: 60vh;
@@ -400,7 +397,6 @@ tr.fila-interactiva {
         border-top: 3px solid #334155;
     }
 
-    /* Ajuste responsivo de filtros y títulos para evitar superposiciones en celulares */
     #titulo-flotante {
         top: 10px;
         left: 10px;
@@ -462,7 +458,6 @@ tr.fila-interactiva {
         padding: 4px 6px;
     }
 
-    /* Ajustes responsivos del modal en celulares */
     .modal-box {
         max-width: 95%;
     }
