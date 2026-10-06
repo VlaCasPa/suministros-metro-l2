@@ -52,7 +52,7 @@ function parsearNumeroLatLon(val) {
     return isNaN(num) ? null : num;
 }
 
-// Función principal para descargar y procesar las hojas en tiempo real por nombre de columna
+// Función principal para descargar y procesar las hojas en tiempo real
 async function cargarDatosDesdeHojas() {
     try {
         const [respAgua, respLuz] = await Promise.all([
@@ -76,6 +76,7 @@ async function cargarDatosDesdeHojas() {
             let idxEmp = headersAgua.indexOf("EMPRESA");
             let idxEst = headersAgua.indexOf("ESTADO");
             let idxTramo = headersAgua.indexOf("TRAMO");
+            let idxTipo = headersAgua.indexOf("TIPO");
             let idxObs = headersAgua.indexOf("COMENTARI") !== -1 ? headersAgua.indexOf("COMENTARI") : headersAgua.indexOf("DOCUMENT");
             let idxLat = headersAgua.indexOf("LATITUD");
             let idxLng = headersAgua.indexOf("LONGITUD");
@@ -99,18 +100,18 @@ async function cargarDatosDesdeHojas() {
                         luzList: []
                     };
                 } else {
-                    // Actualizar coordenadas válidas si la fila principal no las tenía
                     if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
                 let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
                 let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "SEDAPAL";
+                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
                 let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
                 let obs = idxObs !== -1 && cols[idxObs] ? cols[idxObs].trim() : "";
 
                 if (sumNum) {
-                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Estado: ${estado}${obs ? ' | Obs: ' + obs : ''}`);
+                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}${obs ? ' | Obs: ' + obs : ''}`);
                 }
             }
         }
@@ -123,6 +124,7 @@ async function cargarDatosDesdeHojas() {
             let idxEmp = headersLuz.indexOf("EMPRESA");
             let idxEst = headersLuz.indexOf("ESTADO");
             let idxTramo = headersLuz.indexOf("TRAMO");
+            let idxTipo = headersLuz.indexOf("TIPO");
             let idxLat = headersLuz.indexOf("LATITUD");
             let idxLng = headersLuz.indexOf("LONGITUD");
 
@@ -151,10 +153,11 @@ async function cargarDatosDesdeHojas() {
 
                 let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
                 let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "PLUZ";
+                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
                 let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
 
                 if (sumNum) {
-                    mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Estado: ${estado}`);
+                    mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}`);
                 }
             }
         }
@@ -191,14 +194,14 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
     return "#211433";
 }
 
-function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre) {
+function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
     let filasHtml = "";
     if (!textoSuministros || textoSuministros.includes("Sin registro")) {
         return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
             <td><b>${idEstrucutra}</b></td>
             <td>-</td>
             <td>-</td>
-            <td>${servicioNombre}</td>
+            <td>-</td>
             <td>SIN REGISTRO</td>
         </tr>`;
     }
@@ -216,6 +219,14 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre
             if (upLimpio.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
             else if (upLimpio.includes("DE BAJA")) estado = "DE BAJA";
 
+            let tipoVal = "-";
+            if (limpio.includes("Tipo:")) {
+                let partes = limpio.split("Tipo:");
+                if (partes[1]) {
+                    tipoVal = partes[1].split("-")[0].trim();
+                }
+            }
+
             let numSuministro = limpio.split("(")[0].replace("Suministro:", "").trim();
             if (!numSuministro) numSuministro = limpio;
 
@@ -223,13 +234,13 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre
                 <td><b>${idEstrucutra}</b></td>
                 <td>${numSuministro}</td>
                 <td>${empresa}</td>
-                <td>${servicioNombre}</td>
+                <td>${tipoVal}</td>
                 <td>${estado}</td>
             </tr>`;
         }
     });
 
-    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td>${servicioNombre}</td><td>SIN REGISTRO</td></tr>`;
+    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td></tr>`;
 }
 
 function limpiadoValido(str) {
@@ -243,8 +254,8 @@ function cargarTablas(registrosFiltrados) {
     let tbodyLuz = "";
 
     ordenados.forEach(item => {
-        tbodyAgua += parsearSuministrosATabla(item.id, item.agua, "AGUA");
-        tbodyLuz += parsearSuministrosATabla(item.id, item.luz, "LUZ");
+        tbodyAgua += parsearSuministrosATabla(item.id, item.agua);
+        tbodyLuz += parsearSuministrosATabla(item.id, item.luz);
     });
 
     document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua;
