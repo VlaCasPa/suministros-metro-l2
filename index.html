@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS para exportación profesional a Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <!-- VENTANA MODAL DE ADVERTENCIA Y CONFIDENCIALIDAD -->
@@ -93,7 +95,10 @@
         <div id="seccion-tablas">
             <!-- Tabla Superior: Agua (#B5D8E8) -->
             <div class="tabla-panel tabla-agua">
-                <div class="tabla-header">💧 SUMINISTROS DE AGUA (SEDAPAL)</div>
+                <div class="tabla-header">
+                    <span>💧 SUMINISTROS DE AGUA (SEDAPAL)</span>
+                    <button class="btn-reporte-excel" onclick="exportarExcel('AGUA')">📊 Reporte</button>
+                </div>
                 <div class="table-container">
                     <table id="tabla-agua-content">
                         <thead>
@@ -114,7 +119,10 @@
 
             <!-- Tabla Inferior: Luz (#EDE4CC) -->
             <div class="tabla-panel tabla-luz">
-                <div class="tabla-header">⚡ SUMINISTROS DE ELECTRICIDAD (PLUZ / LDS)</div>
+                <div class="tabla-header">
+                    <span>⚡ SUMINISTROS DE ELECTRICIDAD (PLUZ / LDS)</span>
+                    <button class="btn-reporte-excel" onclick="exportarExcel('LUZ')">📊 Reporte</button>
+                </div>
                 <div class="table-container">
                     <table id="tabla-luz-content">
                         <thead>
