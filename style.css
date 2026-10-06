@@ -40,23 +40,30 @@ body {
     -webkit-filter: grayscale(100%) contrast(100%) brightness(100%) opacity(65%);
 }
 
+/* Ajuste estético de la ventana emergente (Popup) para que no sobresalga */
 .leaflet-popup-content-wrapper {
     background-color: #C5DCDE !important;
     color: #1E293B;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    padding: 2px;
+}
+
+.leaflet-popup-content {
+    margin: 10px 12px !important;
+    line-height: 1.4;
 }
 
 .leaflet-popup-tip {
     background-color: #C5DCDE !important;
 }
 
-/* Estilo para las líneas compactas del popup */
+/* Líneas de texto compactas y estéticas dentro del popup */
 .popup-item-line {
     display: block;
-    font-size: 11px;
-    line-height: 1.35;
-    margin-bottom: 2px;
+    font-size: 10.5px;
+    line-height: 1.3;
+    margin-bottom: 3px;
     white-space: nowrap;
 }
 .popup-item-line:last-child {
@@ -253,17 +260,18 @@ th {
     border-bottom: 2px solid #0f172a;
 }
 
-/* Estilo para los selects de filtro dentro de las cabeceras de tabla */
+/* Estilo para los selects de filtro dentro de las cabeceras de tabla (despliegue natural hacia abajo) */
 th select {
-    background: #334155;
+    background: #1e293b;
     color: #ffffff;
     border: 1px solid #475569;
-    padding: 2px 4px;
-    border-radius: 3px;
+    padding: 3px 6px;
+    border-radius: 4px;
     font-size: 10px;
     width: 100%;
-    margin-top: 3px;
+    margin-top: 4px;
     outline: none;
+    cursor: pointer;
 }
 
 td {
@@ -357,8 +365,75 @@ tr.fila-interactiva {
     text-transform: uppercase;
 }
 
+/* ==========================================
+   DISEÑO MÓVIL OPTIMIZADO (SIN CORTES DE TÍTULO)
+   ========================================== */
 @media screen and (max-width: 900px) {
-    #dashboard-container { flex-direction: column; height: auto; }
-    #seccion-mapa { width: 100vw; height: 70vh; }
-    #seccion-tablas { width: 100vw; height: 60vh; border-left: none; border-top: 3px solid #334155; }
+    body {
+        overflow-y: auto;
+    }
+
+    #dashboard-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    #seccion-mapa {
+        width: 100vw;
+        height: 65vh;
+    }
+
+    #seccion-tablas {
+        width: 100vw;
+        height: 60vh;
+        border-left: none;
+        border-top: 3px solid #334155;
+    }
+
+    #titulo-flotante {
+        top: 10px;
+        left: 10px;
+        font-size: 11px;
+        padding: 5px 8px;
+        z-index: 1002;
+    }
+
+    /* Panel de filtros adaptado en móvil para evitar solapamiento y cortes */
+    #panel-filtros {
+        top: 55px;
+        right: 10px;
+        left: 10px;
+        padding: 8px;
+        gap: 6px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        align-items: center;
+        z-index: 1001;
+    }
+
+    .filtro-grupo input, .filtro-grupo select {
+        width: 100%;
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+
+    #btn-limpiar {
+        grid-column: span 2;
+        padding: 5px;
+        font-size: 10px;
+    }
+
+    #panel-leyenda-estados {
+        bottom: 15px;
+        right: 10px;
+        padding: 5px 7px;
+        font-size: 9px;
+    }
+
+    #marca-agua-mapa {
+        bottom: 15px;
+        left: 10px;
+        font-size: 9px;
+        padding: 3px 6px;
+    }
 }
