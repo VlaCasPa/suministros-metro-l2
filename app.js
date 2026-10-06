@@ -3,6 +3,8 @@ const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx
 const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=1407636453&single=true&output=csv';
 
 let registrosSuministros = [];
+let datosBrutosAgua = [];
+let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
 
 // Inicialización del mapa Leaflet
@@ -44,7 +46,7 @@ function parseCSV(text) {
     return lines;
 }
 
-// Conversión segura de números con coma decimal (ej. "-12,04721" -> -12.04721)
+// Conversión segura de números con coma decimal
 function parsearNumeroLatLon(val) {
     if (!val) return null;
     let limpio = val.trim().replace(',', '.');
@@ -52,7 +54,7 @@ function parsearNumeroLatLon(val) {
     return isNaN(num) ? null : num;
 }
 
-// Función principal para descargar y procesar las hojas en tiempo real
+// Carga y procesamiento de datos desde Google Sheets
 async function cargarDatosDesdeHojas() {
     try {
         const [respAgua, respLuz] = await Promise.all([
@@ -66,6 +68,8 @@ async function cargarDatosDesdeHojas() {
         const filasAgua = parseCSV(csvAguaText);
         const filasLuz = parseCSV(csvLuzText);
 
+        datosBrutosAgua = [];
+        datosBrutosLuz = [];
         let mapaEstructuras = {};
 
         // Procesar Hoja de Agua
@@ -77,7 +81,7 @@ async function cargarDatosDesdeHojas() {
             let idxEst = headersAgua.indexOf("ESTADO");
             let idxTramo = headersAgua.indexOf("TRAMO");
             let idxTipo = headersAgua.indexOf("TIPO");
-            let idxObs = headersAgua.indexOf("COMENTARI") !== -1 ? headersAgua.indexOf("COMENTARI") : headersAgua.indexOf("DOCUMENT");
+            let idxDoc = headersAgua.indexOf("DOCUMENT") !== -1 ? headersAgua.indexOf("DOCUMENT") : (headersAgua.indexOf("COMENTARI") !== -1 ? headersAgua.indexOf("COMENTARI") : -1);
             let idxLat = headersAgua.indexOf("LATITUD");
             let idxLng = headersAgua.indexOf("LONGITUD");
 
@@ -87,13 +91,32 @@ async function cargarDatosDesdeHojas() {
                 let id = cols[idxId] ? cols[idxId].trim().toUpperCase() : "";
                 if (!id) continue;
 
+                let tramo = idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim().toUpperCase() : "L2";
+                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
+                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "SEDAPAL";
+                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
+                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
+                let docVal = idxDoc !== -1 && cols[idxDoc] ? cols[idxDoc].trim() : "-";
+
+                if (sumNum) {
+                    datosBrutosAgua.push({
+                        id: id,
+                        suministro: sumNum,
+                        empresa: empresa,
+                        estado: estado,
+                        tipo: tipoVal,
+                        documento: docVal,
+                        tramo: tramo
+                    });
+                }
+
                 let lat = parsearNumeroLatLon(cols[idxLat]);
                 let lng = parsearNumeroLatLon(cols[idxLng]);
 
                 if (!mapaEstructuras[id]) {
                     mapaEstructuras[id] = {
                         id: id,
-                        tramo: idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim() : "L2",
+                        tramo: tramo,
                         lat: lat !== null ? lat : -12.0464,
                         lng: lng !== null ? lng : -77.0428,
                         aguaList: [],
@@ -104,14 +127,8 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
-                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "SEDAPAL";
-                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
-                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
-                let obs = idxObs !== -1 && cols[idxObs] ? cols[idxObs].trim() : "";
-
                 if (sumNum) {
-                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}${obs ? ' | Obs: ' + obs : ''}`);
+                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}${docVal !== '-' ? ' | Obs: ' + docVal : ''}`);
                 }
             }
         }
@@ -125,6 +142,7 @@ async function cargarDatosDesdeHojas() {
             let idxEst = headersLuz.indexOf("ESTADO");
             let idxTramo = headersLuz.indexOf("TRAMO");
             let idxTipo = headersLuz.indexOf("TIPO");
+            let idxDoc = headersLuz.indexOf("DOCUMENT") !== -1 ? headersLuz.indexOf("DOCUMENT") : (headersLuz.indexOf("COMENTARI") !== -1 ? headersLuz.indexOf("COMENTARI") : -1);
             let idxLat = headersLuz.indexOf("LATITUD");
             let idxLng = headersLuz.indexOf("LONGITUD");
 
@@ -134,13 +152,32 @@ async function cargarDatosDesdeHojas() {
                 let id = cols[idxId] ? cols[idxId].trim().toUpperCase() : "";
                 if (!id) continue;
 
+                let tramo = idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim().toUpperCase() : "L2";
+                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
+                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "PLUZ";
+                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
+                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
+                let docVal = idxDoc !== -1 && cols[idxDoc] ? cols[idxDoc].trim() : "-";
+
+                if (sumNum) {
+                    datosBrutosLuz.push({
+                        id: id,
+                        suministro: sumNum,
+                        empresa: empresa,
+                        estado: estado,
+                        tipo: tipoVal,
+                        documento: docVal,
+                        tramo: tramo
+                    });
+                }
+
                 let lat = parsearNumeroLatLon(cols[idxLat]);
                 let lng = parsearNumeroLatLon(cols[idxLng]);
 
                 if (!mapaEstructuras[id]) {
                     mapaEstructuras[id] = {
                         id: id,
-                        tramo: idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim() : "L2",
+                        tramo: tramo,
                         lat: lat !== null ? lat : -12.0464,
                         lng: lng !== null ? lng : -77.0428,
                         aguaList: [],
@@ -151,18 +188,12 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
-                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "PLUZ";
-                let tipoVal = idxTipo !== -1 && cols[idxTipo] ? cols[idxTipo].trim() : "-";
-                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
-
                 if (sumNum) {
                     mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Tipo: ${tipoVal} - Estado: ${estado}`);
                 }
             }
         }
 
-        // Consolidar registros globales
         registrosSuministros = Object.values(mapaEstructuras).map(item => ({
             id: item.id,
             tramo: item.tramo,
@@ -176,8 +207,19 @@ async function cargarDatosDesdeHojas() {
 
     } catch (error) {
         console.error("Error al cargar datos desde Google Sheets:", error);
-        alert("Advertencia: No se pudieron sincronizar los datos en vivo con Google Sheets. Verifique su conexión a internet.");
+        alert("Advertencia: No se pudieron sincronizar los datos en vivo con Google Sheets.");
     }
+}
+
+// Función de ordenamiento: L4 primero (alfabético), luego L2 (alfabético)
+function ordenarListaTramo(a, b) {
+    let tramA = (a.tramo || "L2").toUpperCase();
+    let tramB = (b.tramo || "L2").toUpperCase();
+
+    if (tramA === "L4" && tramB !== "L4") return -1;
+    if (tramA !== "L4" && tramB === "L4") return 1;
+
+    return a.id.localeCompare(b.id);
 }
 
 function obtenerColorPin(textoTotal, estadoFiltroSelect) {
@@ -248,7 +290,8 @@ function limpiadoValido(str) {
 }
 
 function cargarTablas(registrosFiltrados) {
-    let ordenados = [...registrosFiltrados].sort((a, b) => a.id.localeCompare(b.id));
+    // Aplicar ordenamiento: L4 primero, luego L2, ambos alfabéticos por ID
+    let ordenados = [...registrosFiltrados].sort(ordenarListaTramo);
 
     let tbodyAgua = "";
     let tbodyLuz = "";
@@ -410,6 +453,66 @@ function limpiarFiltros() {
     if (boundsGlobal.length > 0) {
         map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
     }
+}
+
+// ==========================================
+// GENERACIÓN DE REPORTES EXCEL PROFESIONALES
+// ==========================================
+function exportarExcel(tipoServicio) {
+    let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
+    let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
+    
+    // Ordenar datos (L4 primero, luego L2, alfabético por ID)
+    let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
+
+    // Obtener fecha y hora actual formateada
+    let ahora = new Date();
+    let fechaStr = ahora.toLocaleDateString('es-PE');
+    let horaStr = ahora.toLocaleTimeString('es-PE');
+    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
+
+    // Construir matriz de datos para SheetJS
+    let wsData = [
+        [tituloReporte],
+        [timestampStr],
+        [], // Fila en blanco
+        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO"] // Cabeceras exactas
+    ];
+
+    datosOrdenados.forEach(item => {
+        wsData.push([
+            item.id,
+            item.suministro,
+            item.empresa,
+            item.estado,
+            item.tipo,
+            item.documento
+        ]);
+    });
+
+    // Crear libro de trabajo y hoja
+    let wb = XLSX.utils.book_new();
+    let ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Añadir formato de ancho automático de columnas
+    let colWidths = [
+        {wch: 12}, // ID
+        {wch: 18}, // SUMINISTRO
+        {wch: 15}, // EMPRESA
+        {wch: 22}, // ESTADO
+        {wch: 15}, // TIPO
+        {wch: 25}  // DOCUMENTO
+    ];
+    ws['!cols'] = colWidths;
+
+    // Agregar hoja al libro
+    XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
+
+    // Nombre del archivo de salida
+    let nombreArchivo = tipoServicio === 'AGUA' ? `Reporte_Suministros_Agua_CCM2L.xlsx` : `Reporte_Suministros_Electricidad_CCM2L.xlsx`;
+
+    // Descargar archivo Excel
+    XLSX.writeFile(wb, nombreArchivo);
 }
 
 // ==========================================
