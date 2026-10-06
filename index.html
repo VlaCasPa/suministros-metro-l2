@@ -32,13 +32,13 @@
         <!-- SECCIÓN IZQUIERDA / SUPERIOR: MAPA Y FILTROS -->
         <div id="seccion-mapa">
             <!-- Título Principal -->
-            <div id="titulo-flotante">Suministros - L2 & L4</div>
+            <div id="titulo-flotante">Suministros - L2 & L4 (En Vivo)</div>
 
             <!-- Panel de Búsqueda y Filtros -->
             <div id="panel-filtros">
                 <div class="filtro-grupo">
                     <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
-                    <input type="text" id="input-buscar" placeholder="Ej: 7355727, E01..." onkeyup="filtrarMapa()">
+                    <input type="text" id="input-buscar" placeholder="Ej: E13, 7721849..." onkeyup="filtrarMapa()">
                 </div>
                 <div class="filtro-grupo">
                     <label for="select-tipo">Tipo:</label>
@@ -106,7 +106,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Se inyecta dinámicamente -->
+                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -127,7 +127,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Se inyecta dinámicamente -->
+                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
                         </tbody>
                     </table>
                 </div>
