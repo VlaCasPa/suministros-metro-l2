@@ -1,6 +1,6 @@
-// URLs de exportación CSV de Google Sheets proporcionadas
-const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/12aZE1jl_iV7YKDJJQCPtBB4FP0PSkd41uvx8gQF_i9s/export?format=csv&gid=0';[cite: 5]
-const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/12aZE1jl_iV7YKDJJQCPtBB4FP0PSkd41uvx8gQF_i9s/export?format=csv&gid=1407636453';[cite: 5]
+// URLs de exportación CSV publicadas desde Google Sheets
+const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=0&single=true&output=csv';
+const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=1407636453&single=true&output=csv';
 
 let registrosSuministros = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
@@ -19,7 +19,7 @@ function inicializarMapaBase() {
     capaMarcadores = L.layerGroup().addTo(map);
 }
 
-// Parseador robusto de CSV soportando comillas y saltos internos
+// Parseador CSV robusto
 function parseCSV(text) {
     let lines = [];
     let row = [""];
@@ -44,7 +44,15 @@ function parseCSV(text) {
     return lines;
 }
 
-// Función principal para descargar y procesar las hojas en tiempo real
+// Conversión segura de números con coma decimal (ej. "-12,04721" -> -12.04721)
+function parsearNumeroLatLon(val) {
+    if (!val) return null;
+    let limpio = val.trim().replace(',', '.');
+    let num = parseFloat(limpio);
+    return isNaN(num) ? null : num;
+}
+
+// Función principal para descargar y procesar las hojas en tiempo real por nombre de columna
 async function cargarDatosDesdeHojas() {
     try {
         const [respAgua, respLuz] = await Promise.all([
@@ -58,64 +66,100 @@ async function cargarDatosDesdeHojas() {
         const filasAgua = parseCSV(csvAguaText);
         const filasLuz = parseCSV(csvLuzText);
 
-        // Estructura temporal para consolidar por ID de estructura
         let mapaEstructuras = {};
 
-        // Procesar Agua (Asumiendo columnas: ID, Tramo, Lat, Lng, Suministro, Empresa, Estado, Obs)
-        // O adaptado a la estructura que tenga su Google Sheet
-        for (let i = 1; i < filasAgua.length; i++) {
-            let cols = filasAgua[i];
-            if (cols.length < 4) continue;
-            let id = cols[0] ? cols[0].trim().toUpperCase() : "";
-            if (!id) continue;
+        // Procesar Hoja de Agua
+        if (filasAgua.length > 1) {
+            let headersAgua = filasAgua[0].map(h => h.trim().toUpperCase());
+            let idxId = headersAgua.indexOf("ID");
+            let idxSum = headersAgua.indexOf("SUMINISTRO");
+            let idxEmp = headersAgua.indexOf("EMPRESA");
+            let idxEst = headersAgua.indexOf("ESTADO");
+            let idxTramo = headersAgua.indexOf("TRAMO");
+            let idxObs = headersAgua.indexOf("COMENTARI") !== -1 ? headersAgua.indexOf("COMENTARI") : headersAgua.indexOf("DOCUMENT");
+            let idxLat = headersAgua.indexOf("LATITUD");
+            let idxLng = headersAgua.indexOf("LONGITUD");
 
-            if (!mapaEstructuras[id]) {
-                mapaEstructuras[id] = {
-                    id: id,
-                    tramo: cols[1] ? cols[1].trim() : "L2",
-                    lat: parseFloat(cols[2]) || -12.0464,
-                    lng: parseFloat(cols[3]) || -77.0428,
-                    aguaList: [],
-                    luzList: []
-                };
-            }
-            let sumNum = cols[4] ? cols[4].trim() : "";
-            let empresa = cols[5] ? cols[5].trim() : "SEDAPAL";
-            let estado = cols[6] ? cols[6].trim() : "ACTIVO";
-            let obs = cols[7] ? cols[7].trim() : "";
+            for (let i = 1; i < filasAgua.length; i++) {
+                let cols = filasAgua[i];
+                if (cols.length <= idxId) continue;
+                let id = cols[idxId] ? cols[idxId].trim().toUpperCase() : "";
+                if (!id) continue;
 
-            if (sumNum) {
-                mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Estado: ${estado}${obs ? ' | Obs: ' + obs : ''}`);
-            }
-        }
+                let lat = parsearNumeroLatLon(cols[idxLat]);
+                let lng = parsearNumeroLatLon(cols[idxLng]);
 
-        // Procesar Luz
-        for (let i = 1; i < filasLuz.length; i++) {
-            let cols = filasLuz[i];
-            if (cols.length < 4) continue;
-            let id = cols[0] ? cols[0].trim().toUpperCase() : "";
-            if (!id) continue;
+                if (!mapaEstructuras[id]) {
+                    mapaEstructuras[id] = {
+                        id: id,
+                        tramo: idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim() : "L2",
+                        lat: lat !== null ? lat : -12.0464,
+                        lng: lng !== null ? lng : -77.0428,
+                        aguaList: [],
+                        luzList: []
+                    };
+                } else {
+                    // Actualizar coordenadas válidas si la fila principal no las tenía
+                    if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
+                    if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
+                }
 
-            if (!mapaEstructuras[id]) {
-                mapaEstructuras[id] = {
-                    id: id,
-                    tramo: cols[1] ? cols[1].trim() : "L2",
-                    lat: parseFloat(cols[2]) || -12.0464,
-                    lng: parseFloat(cols[3]) || -77.0428,
-                    aguaList: [],
-                    luzList: []
-                };
-            }
-            let sumNum = cols[4] ? cols[4].trim() : "";
-            let empresa = cols[5] ? cols[5].trim() : "PLUZ";
-            let estado = cols[6] ? cols[6].trim() : "ACTIVO";
+                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
+                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "SEDAPAL";
+                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
+                let obs = idxObs !== -1 && cols[idxObs] ? cols[idxObs].trim() : "";
 
-            if (sumNum) {
-                mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Estado: ${estado}`);
+                if (sumNum) {
+                    mapaEstructuras[id].aguaList.push(`• Suministro: ${sumNum} (${empresa}) - Estado: ${estado}${obs ? ' | Obs: ' + obs : ''}`);
+                }
             }
         }
 
-        // Convertir mapa consolidado al array global
+        // Procesar Hoja de Luz
+        if (filasLuz.length > 1) {
+            let headersLuz = filasLuz[0].map(h => h.trim().toUpperCase());
+            let idxId = headersLuz.indexOf("ID");
+            let idxSum = headersLuz.indexOf("SUMINISTRO");
+            let idxEmp = headersLuz.indexOf("EMPRESA");
+            let idxEst = headersLuz.indexOf("ESTADO");
+            let idxTramo = headersLuz.indexOf("TRAMO");
+            let idxLat = headersLuz.indexOf("LATITUD");
+            let idxLng = headersLuz.indexOf("LONGITUD");
+
+            for (let i = 1; i < filasLuz.length; i++) {
+                let cols = filasLuz[i];
+                if (cols.length <= idxId) continue;
+                let id = cols[idxId] ? cols[idxId].trim().toUpperCase() : "";
+                if (!id) continue;
+
+                let lat = parsearNumeroLatLon(cols[idxLat]);
+                let lng = parsearNumeroLatLon(cols[idxLng]);
+
+                if (!mapaEstructuras[id]) {
+                    mapaEstructuras[id] = {
+                        id: id,
+                        tramo: idxTramo !== -1 && cols[idxTramo] ? cols[idxTramo].trim() : "L2",
+                        lat: lat !== null ? lat : -12.0464,
+                        lng: lng !== null ? lng : -77.0428,
+                        aguaList: [],
+                        luzList: []
+                    };
+                } else {
+                    if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
+                    if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
+                }
+
+                let sumNum = idxSum !== -1 && cols[idxSum] ? cols[idxSum].trim() : "";
+                let empresa = idxEmp !== -1 && cols[idxEmp] ? cols[idxEmp].trim() : "PLUZ";
+                let estado = idxEst !== -1 && cols[idxEst] ? cols[idxEst].trim() : "ACTIVO";
+
+                if (sumNum) {
+                    mapaEstructuras[id].luzList.push(`⚡ Suministro: ${sumNum} (${empresa}) - Estado: ${estado}`);
+                }
+            }
+        }
+
+        // Consolidar registros globales
         registrosSuministros = Object.values(mapaEstructuras).map(item => ({
             id: item.id,
             tramo: item.tramo,
@@ -164,13 +208,13 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros, servicioNombre
         let limpio = linea.trim();
         if (limpiadoValido(limpio)) {
             let empresa = "SEDAPAL";
-            if (limpio.toUpperCase().includes("PLUZ")) empresa = "PLUZ ENERGÍA";
-            else if (limpio.toUpperCase().includes("LDS")) empresa = "LDS";
+            let upLimpio = limpio.toUpperCase();
+            if (upLimpio.includes("PLUZ")) empresa = "PLUZ ENERGÍA";
+            else if (upLimpio.includes("LDS")) empresa = "LDS";
 
             let estado = "ACTIVO";
-            let up = limpio.toUpperCase();
-            if (up.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
-            else if (up.includes("DE BAJA")) estado = "DE BAJA";
+            if (upLimpio.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
+            else if (upLimpio.includes("DE BAJA")) estado = "DE BAJA";
 
             let numSuministro = limpio.split("(")[0].replace("Suministro:", "").trim();
             if (!numSuministro) numSuministro = limpio;
