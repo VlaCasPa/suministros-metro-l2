@@ -28,15 +28,13 @@
         </div>
     </div>
 
-    <!-- Contenedor Principal de Pantalla Dividida / Responsiva -->
+    <!-- Contenedor Principal de Pantalla Dividida -->
     <div id="dashboard-container">
         
-        <!-- SECCIÓN IZQUIERDA / SUPERIOR: MAPA Y FILTROS -->
+        <!-- SECCIÓN IZQUIERDA: MAPA Y FILTROS -->
         <div id="seccion-mapa">
-            <!-- Título Principal -->
             <div id="titulo-flotante">Suministros - L2 & L4</div>
 
-            <!-- Panel de Búsqueda y Filtros -->
             <div id="panel-filtros">
                 <div class="filtro-grupo">
                     <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
@@ -75,7 +73,6 @@
                 </div>
             </div>
 
-            <!-- Leyenda de Estados en el Mapa -->
             <div id="panel-leyenda-estados">
                 <span class="leyenda-titulo-est">ESTADOS</span>
                 <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #043B0F;"></span> Activo</div>
@@ -84,16 +81,13 @@
                 <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #2D2836;"></span> Sin Reg.</div>
             </div>
 
-            <!-- Marca de Agua inferior izquierda -->
             <div id="marca-agua-mapa">Diseñado por Vladimir Casas</div>
-
-            <!-- Contenedor del Mapa -->
             <div id="map"></div>
         </div>
 
-        <!-- SECCIÓN DERECHA / INFERIOR: TABLAS GERENCIALES -->
+        <!-- SECCIÓN DERECHA: TABLAS GERENCIALES CON FILTROS DESPLEGABLES EN COLUMNAS -->
         <div id="seccion-tablas">
-            <!-- Tabla Superior: Agua (#B5D8E8) -->
+            <!-- Tabla Superior: Agua -->
             <div class="tabla-panel tabla-agua">
                 <div class="tabla-header">
                     <span>💧 SUMINISTROS DE AGUA (SEDAPAL)</span>
@@ -106,8 +100,18 @@
                                 <th>ID</th>
                                 <th>Servicio</th>
                                 <th>Empresa</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
+                                <th>
+                                    Tipo
+                                    <select id="filtro-tabla-agua-tipo" onchange="aplicarFiltrosTablas()">
+                                        <option value="TODOS">Todos</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    Estado
+                                    <select id="filtro-tabla-agua-estado" onchange="aplicarFiltrosTablas()">
+                                        <option value="TODOS">Todos</option>
+                                    </select>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,7 +121,7 @@
                 </div>
             </div>
 
-            <!-- Tabla Inferior: Luz (#EDE4CC) -->
+            <!-- Tabla Inferior: Luz -->
             <div class="tabla-panel tabla-luz">
                 <div class="tabla-header">
                     <span>⚡ SUMINISTROS DE ELECTRICIDAD (PLUZ / LDS)</span>
@@ -130,8 +134,18 @@
                                 <th>ID</th>
                                 <th>Servicio</th>
                                 <th>Empresa</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
+                                <th>
+                                    Tipo
+                                    <select id="filtro-tabla-luz-tipo" onchange="aplicarFiltrosTablas()">
+                                        <option value="TODOS">Todos</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    Estado
+                                    <select id="filtro-tabla-luz-estado" onchange="aplicarFiltrosTablas()">
+                                        <option value="TODOS">Todos</option>
+                                    </select>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
