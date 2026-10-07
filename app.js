@@ -130,7 +130,13 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum) {
-                    mapaEstructuras[id].aguaList.push(`<span class="popup-item-line">💧 <b>${sumNum}</b> / Tipo: <b>${tipoVal}</b> / Estado: <b>${estado}</b></span>`);
+                    // Nuevo formato en 2 filas: Fila 1 (Ícono + Suministro), Fila 2 (Tipo - Estado alineado)[cite: 15]
+                    mapaEstructuras[id].aguaList.push(`
+                        <div class="popup-item-block">
+                            <div class="popup-line-primary">💧 <b>${sumNum}</b></div>
+                            <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
+                        </div>
+                    `);
                 }
             }
         }
@@ -176,7 +182,13 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum) {
-                    mapaEstructuras[id].luzList.push(`<span class="popup-item-line">⚡ <b>${sumNum} (${empresa})</b> / Tipo: <b>${tipoVal}</b> / Estado: <b>${estado}</b></span>`);
+                    // Nuevo formato en 2 filas: Fila 1 (Ícono + Suministro + Empresa), Fila 2 (Tipo - Estado alineado)[cite: 15]
+                    mapaEstructuras[id].luzList.push(`
+                        <div class="popup-item-block">
+                            <div class="popup-line-primary">⚡ <b>${sumNum} (${empresa})</b></div>
+                            <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
+                        </div>
+                    `);
                 }
             }
         }
@@ -233,11 +245,12 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         </tr>`;
     }
 
-    let divisiones = textoSuministros.split('</span>');
+    let divisiones = textoSuministros.split('</div>\n                        </div>');
     divisiones.forEach(div => {
         if (!div.trim()) return;
         let limpio = div.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-        
+        if (limpio.length < 3) return;
+
         let empresa = "SEDAPAL";
         let upLimpio = limpio.toUpperCase();
         if (upLimpio.includes("PLUZ")) empresa = "PLUZ ENERGÍA";
@@ -251,11 +264,12 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         if (limpio.includes("Tipo:")) {
             let partes = limpio.split("Tipo:");
             if (partes[1]) {
-                tipoVal = partes[1].split("/")[0].trim();
+                tipoVal = partes[1].split("-")[0].trim();
             }
         }
 
-        let numSuministro = limpio.split("/")[0].replace("💧", "").replace("⚡", "").trim();
+        let numSuministro = limpio.split("Tipo:")[0].replace("💧", "").replace("⚡", "").trim();
+        if (numSuministro.includes("(")) numSuministro = numSuministro.split("(")[0].trim();
         if (!numSuministro) numSuministro = limpio;
 
         filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
@@ -391,17 +405,18 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
             iconAnchor: [7, 12]
         });
 
+        // Estructura limpia y estética para el Popup con diseño de 2 filas por suministro
         const popupContent = `
-            <div style="font-family: 'Inter', sans-serif; width: 260px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
-                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 5px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
+            <div style="font-family: 'Inter', sans-serif; width: 270px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
+                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
                 
-                <div style="background: #eaf2f8; padding: 5px 6px; border-radius: 4px; margin-bottom: 4px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 2px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
+                <div style="background: #eaf2f8; padding: 6px 8px; border-radius: 4px; margin-bottom: 5px;">
+                    <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
                     ${item.agua}
                 </div>
 
-                <div style="background: #fef9e7; padding: 5px 6px; border-radius: 4px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 2px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
+                <div style="background: #fef9e7; padding: 6px 8px; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
                     ${item.luz}
                 </div>
             </div>
@@ -522,7 +537,7 @@ function exportarExcel(tipoServicio) {
     ];
 
     datosOrdenados.forEach(item => {
-        wsData.push([item.suministro ? item.id : item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
+        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
     });
 
     let wb = XLSX.utils.book_new();
