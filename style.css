@@ -58,16 +58,27 @@ body {
     background-color: #C5DCDE !important;
 }
 
-/* Líneas de texto compactas y estéticas dentro del popup */
-.popup-item-line {
-    display: block;
-    font-size: 10.5px;
-    line-height: 1.3;
-    margin-bottom: 3px;
-    white-space: nowrap;
+/* Estilos de las dos filas estéticas dentro del popup */
+.popup-item-block {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(0,0,0,0.15);
 }
-.popup-item-line:last-child {
+.popup-item-block:last-child {
     margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.popup-line-primary {
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+.popup-line-secondary {
+    font-size: 10px;
+    color: #334155;
+    padding-left: 14px;
 }
 
 .pin-etiqueta-contenedor {
@@ -260,7 +271,7 @@ th {
     border-bottom: 2px solid #0f172a;
 }
 
-/* Estilo para los selects de filtro dentro de las cabeceras de tabla (despliegue natural hacia abajo) */
+/* Estilo para los selects de filtro dentro de las cabeceras de tabla */
 th select {
     background: #1e293b;
     color: #ffffff;
@@ -366,7 +377,7 @@ tr.fila-interactiva {
 }
 
 /* ==========================================
-   DISEÑO MÓVIL OPTIMIZADO (SIN CORTES DE TÍTULO)
+   DISEÑO MÓVIL OPTIMIZADO
    ========================================== */
 @media screen and (max-width: 900px) {
     body {
@@ -398,7 +409,6 @@ tr.fila-interactiva {
         z-index: 1002;
     }
 
-    /* Panel de filtros adaptado en móvil para evitar solapamiento y cortes */
     #panel-filtros {
         top: 55px;
         right: 10px;
