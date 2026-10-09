@@ -2,10 +2,88 @@
 const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=0&single=true&output=csv';
 const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=1407636453&single=true&output=csv';
 
+// --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+
+// Credenciales de su proyecto central de Firebase (Cerramientos L2L4)
+const firebaseConfig = {
+    apiKey: "SU_API_KEY_REAL",
+    authDomain: "cerramientos-l2l4-b157e.firebaseapp.com",
+    projectId: "cerramientos-l2l4-b157e",
+    storageBucket: "cerramientos-l2l4-b157e.appspot.com",
+    messagingSenderId: "SU_MESSAGING_SENDER_ID",
+    appId: "SU_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Identificador exacto de este repositorio en la matriz de Firestore
+const REPO_ACTUAL = "suministros-metro-l2";
+
 let registrosSuministros = [];
 let datosBrutosAgua = [];
 let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
+
+// Validación de Seguridad y Permisos al Cargar la Aplicación
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const emailUser = user.email;
+        try {
+            const docRef = doc(db, "usuarios", emailUser);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const datosUsuario = docSnap.data();
+                const reposPermitidos = datosUsuario.repositorios_permitidos || [];
+                const esAdmin = datosUsuario.es_admin || false;
+                const puedeEscribir = datosUsuario.permisos_escritura || false;
+
+                // Validar acceso al repositorio actual
+                if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
+                    console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
+                    
+                    // Inicializar el sistema de mapas y datos si tiene pase libre
+                    verificarDisclaimer();
+                    inicializarMapaBase();
+                    cargarDatosDesdeHojas();
+
+                    // Si no es admin y no tiene permisos de escritura, aplicar modo solo lectura
+                    if (!esAdmin && !puedeEscribir) {
+                        aplicarModoSoloLectura();
+                    }
+                } else {
+                    alert("Acceso denegado: Su usuario no cuenta con privilegios para visualizar este módulo de suministros.");
+                    window.location.href = "https://vlacaspa.github.io/Control-VCP/"; // Redirigir a módulo principal o permitido
+                }
+            } else {
+                alert("Su cuenta de correo no se encuentra registrada en la matriz de control de accesos de la Línea 2.");
+                signOut(auth).then(() => {
+                    window.location.href = "login.html";
+                });
+            }
+        } catch (error) {
+            console.error("Error al validar autorizaciones en Firestore:", error);
+        }
+    } else {
+        // Redirigir si no ha iniciado sesión
+        window.location.href = "login.html";
+    }
+});
+
+function aplicarModoSoloLectura() {
+    document.querySelectorAll(".btn-reporte-excel, input, select").forEach(el => {
+        if (el.classList.contains('btn-reporte-excel')) {
+            // Permitir reportes si se desea, o bloquearlos descomentando la línea siguiente:
+            // el.style.display = "none";
+        }
+    });
+    console.info("Modo de seguridad: Visualización de solo lectura aplicada.");
+}
 
 // Inicialización del mapa Leaflet
 function inicializarMapaBase() {
@@ -130,7 +208,6 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum) {
-                    // Nuevo formato en 2 filas: Fila 1 (Ícono + Suministro), Fila 2 (Tipo - Estado alineado)[cite: 15]
                     mapaEstructuras[id].aguaList.push(`
                         <div class="popup-item-block">
                             <div class="popup-line-primary">💧 <b>${sumNum}</b></div>
@@ -182,7 +259,6 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum) {
-                    // Nuevo formato en 2 filas: Fila 1 (Ícono + Suministro + Empresa), Fila 2 (Tipo - Estado alineado)[cite: 15]
                     mapaEstructuras[id].luzList.push(`
                         <div class="popup-item-block">
                             <div class="popup-line-primary">⚡ <b>${sumNum} (${empresa})</b></div>
@@ -405,7 +481,6 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
             iconAnchor: [7, 12]
         });
 
-        // Estructura limpia y estética para el Popup con diseño de 2 filas por suministro
         const popupContent = `
             <div style="font-family: 'Inter', sans-serif; width: 270px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
                 <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
@@ -524,7 +599,7 @@ function exportarExcel(tipoServicio) {
     let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
     let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
 
-    let ahora = new Date();
+    letahora = new Date();
     let fechaStr = ahora.toLocaleDateString('es-PE');
     let horaStr = ahora.toLocaleTimeString('es-PE');
     let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
@@ -568,9 +643,3 @@ function aceptarDisclaimer() {
         setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 }
-
-window.onload = function() {
-    verificarDisclaimer();
-    inicializarMapaBase();
-    cargarDatosDesdeHojas();
-};
