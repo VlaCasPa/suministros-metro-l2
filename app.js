@@ -4,22 +4,23 @@ const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3
 
 // --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
 
-// Credenciales de su proyecto central de Firebase (Cerramientos L2L4)
+// Credenciales oficiales de su proyecto de Firebase (Cerramientos L2L4)
 const firebaseConfig = {
     apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg",
     authDomain: "cerramientos-l2l4-b157e.firebaseapp.com",
     projectId: "cerramientos-l2l4-b157e",
     storageBucket: "cerramientos-l2l4-b157e.appspot.com",
-    messagingSenderId: "SU_MESSAGING_SENDER_ID",
-    appId: "SU_APP_ID"
+    messagingSenderId: "21699345602",
+    appId: "1:21699345602:web:f715c1203b7516f0cccf5b"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
 // Identificador exacto de este repositorio en la matriz de Firestore
 const REPO_ACTUAL = "suministros-metro-l2";
@@ -47,41 +48,59 @@ onAuthStateChanged(auth, async (user) => {
                 if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
                     console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
                     
-                    // Inicializar el sistema de mapas y datos si tiene pase libre
                     verificarDisclaimer();
                     inicializarMapaBase();
                     cargarDatosDesdeHojas();
 
-                    // Si no es admin y no tiene permisos de escritura, aplicar modo solo lectura
                     if (!esAdmin && !puedeEscribir) {
                         aplicarModoSoloLectura();
                     }
                 } else {
-                    alert("Acceso denegado: Su usuario no cuenta con privilegios para visualizar este módulo de suministros.");
-                    window.location.href = "https://vlacaspa.github.io/Control-VCP/"; // Redirigir a módulo principal o permitido
+                    alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
+                    await signOut(auth);
+                    mostrarBotonLogin(`Acceso denegado para ${emailUser}. Inicie sesión con una cuenta autorizada.`);
                 }
             } else {
-                alert("Su cuenta de correo no se encuentra registrada en la matriz de control de accesos de la Línea 2.");
-                signOut(auth).then(() => {
-                    window.location.href = "login.html";
-                });
+                alert(`El correo ${emailUser} no está registrado en la base de datos de control de accesos.`);
+                await signOut(auth);
+                mostrarBotonLogin(`La cuenta ${emailUser} no está autorizada.`);
             }
         } catch (error) {
             console.error("Error al validar autorizaciones en Firestore:", error);
         }
     } else {
-        // Redirigir si no ha iniciado sesión
-        window.location.href = "login.html";
+        // Si no hay sesión, mostrar un botón flotante de acceso en la misma interfaz para facilitar las pruebas
+        mostrarBotonLogin("Debe iniciar sesión con Google para acceder al sistema de suministros.");
     }
 });
 
-function aplicarModoSoloLectura() {
-    document.querySelectorAll(".btn-reporte-excel, input, select").forEach(el => {
-        if (el.classList.contains('btn-reporte-excel')) {
-            // Permitir reportes si se desea, o bloquearlos descomentando la línea siguiente:
-            // el.style.display = "none";
+// Función auxiliar para mostrar un acceso directo de autenticación si no está logueado
+function mostrarBotonLogin(mensaje) {
+    document.querySelector("#tabla-agua-content tbody").innerHTML = `
+        <tr><td colspan="5" style="text-align:center; padding: 20px;">
+            <p style="color: #ef4444; font-weight: bold; margin-bottom: 10px;">${mensaje}</p>
+            <button id="btn-login-google" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                🔑 Iniciar Sesión con Google (Admin / Visor)
+            </button>
+        </td></tr>`;
+    
+    document.querySelector("#tabla-luz-content tbody").innerHTML = `<tr><td colspan="5" style="text-align:center;">Esperando autenticación de usuario...</td></tr>`;
+
+    setTimeout(() => {
+        const btnLogin = document.getElementById("btn-login-google");
+        if (btnLogin) {
+            btnLogin.onclick = async () => {
+                try {
+                    await signInWithPopup(auth, provider);
+                } catch (err) {
+                    console.error("Error en el inicio de sesión:", err);
+                }
+            };
         }
-    });
+    }, 500);
+}
+
+function aplicarModoSoloLectura() {
     console.info("Modo de seguridad: Visualización de solo lectura aplicada.");
 }
 
@@ -282,8 +301,6 @@ async function cargarDatosDesdeHojas() {
 
     } catch (error) {
         console.error("Error crítico al procesar las hojas:", error);
-        document.querySelector("#tabla-agua-content tbody").innerHTML = `<tr><td colspan="5" style="text-align:center; color: #ef4444;">Error al cargar datos. Verifique su conexión.</td></tr>`;
-        document.querySelector("#tabla-luz-content tbody").innerHTML = `<tr><td colspan="5" style="text-align:center; color: #ef4444;">Error al cargar datos. Verifique su conexión.</td></tr>`;
     }
 }
 
@@ -599,7 +616,7 @@ function exportarExcel(tipoServicio) {
     let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
     let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
 
-    letahora = new Date();
+    let ahora = new Date();
     let fechaStr = ahora.toLocaleDateString('es-PE');
     let horaStr = ahora.toLocaleTimeString('es-PE');
     let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
