@@ -46,7 +46,7 @@ onAuthStateChanged(auth, async (user) => {
 
                 // Validar acceso al repositorio actual
                 if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
-                    console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
+                    console.log(`Acceso autorizado para ${emailUser} en${REPO_ACTUAL}`);
                     
                     verificarDisclaimer();
                     inicializarMapaBase();
@@ -56,21 +56,22 @@ onAuthStateChanged(auth, async (user) => {
                         aplicarModoSoloLectura();
                     }
                 } else {
-                    alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
+                    alert(`Acceso denegado: El correo \${emailUser} no cuenta con privilegios para este módulo.`);
                     await signOut(auth);
-                    mostrarBotonLogin(`Acceso denegado para ${emailUser}. Inicie sesión con una cuenta autorizada.`);
+                    mostrarBotonLogin(`Acceso denegado para \${emailUser}. Inicie sesión con una cuenta autorizada.`);
                 }
             } else {
-                alert(`El correo ${emailUser} no está registrado en la base de datos de control de accesos.`);
+                alert(`El correo \${emailUser} no está registrado en la base de datos de control de accesos.`);
                 await signOut(auth);
-                mostrarBotonLogin(`La cuenta ${emailUser} no está autorizada.`);
+                mostrarBotonLogin(`La cuenta \${emailUser} no está autorizada.`);
             }
         } catch (error) {
             console.error("Error al validar autorizaciones en Firestore:", error);
+            mostrarBotonLogin("Error de conexión con la base de datos de permisos.");
         }
     } else {
-        // Si no hay sesión, mostrar un botón flotante de acceso en la misma interfaz para facilitar las pruebas
-        mostrarBotonLogin("Debe iniciar sesión con Google para acceder al sistema de suministros.");
+        // FUERZA LA APARICIÓN DEL BOTÓN SI NO HAY SESIÓN ACTIVA
+        mostrarBotonLogin("Debe iniciar sesión con una cuenta autorizada para acceder al sistema.");
     }
 });
 
@@ -78,7 +79,7 @@ onAuthStateChanged(auth, async (user) => {
 function mostrarBotonLogin(mensaje) {
     document.querySelector("#tabla-agua-content tbody").innerHTML = `
         <tr><td colspan="5" style="text-align:center; padding: 20px;">
-            <p style="color: #ef4444; font-weight: bold; margin-bottom: 10px;">${mensaje}</p>
+            <p style="color: #ef4444; font-weight: bold; margin-bottom: 10px;">\${mensaje}</p>
             <button id="btn-login-google" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">
                 🔑 Iniciar Sesión con Google (Admin / Visor)
             </button>
@@ -229,7 +230,7 @@ async function cargarDatosDesdeHojas() {
                 if (sumNum) {
                     mapaEstructuras[id].aguaList.push(`
                         <div class="popup-item-block">
-                            <div class="popup-line-primary">💧 <b>${sumNum}</b></div>
+                            <div class="popup-line-primary">💧 <b>\${sumNum}</b></div>
                             <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
                         </div>
                     `);
@@ -329,8 +330,8 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
 function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
     let filasHtml = "";
     if (!textoSuministros || textoSuministros.includes("Sin registro")) {
-        return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
-            <td><b>${idEstrucutra}</b></td>
+        return `<tr class="fila-interactiva" onclick="centrarEnId('\${idEstrucutra}')">
+            <td><b>\${idEstrucutra}</b></td>
             <td>-</td>
             <td>-</td>
             <td class="col-tipo">-</td>
@@ -366,11 +367,11 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         if (!numSuministro) numSuministro = limpio;
 
         filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
-            <td><b>${idEstrucutra}</b></td>
-            <td>${numSuministro}</td>
-            <td>${empresa}</td>
-            <td class="col-tipo">${tipoVal}</td>
-            <td class="col-estado">${estado}</td>
+            <td><b>\${idEstrucutra}</b></td>
+            <td>\${numSuministro}</td>
+            <td>\${empresa}</td>
+            <td class="col-tipo">\${tipoVal}</td>
+            <td class="col-estado">\${estado}</td>
         </tr>`;
     });
 
@@ -396,8 +397,8 @@ function cargarTablas(registrosFiltrados) {
 
 function poblarFiltrosTablas() {
     ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
+        let selectTipo = document.getElementById(`filtro-tabla-\${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-\${tipoTab}-estado`);
         if (!selectTipo || !selectEstado) return;
 
         let valTipoActual = selectTipo.value;
@@ -406,7 +407,7 @@ function poblarFiltrosTablas() {
         let tiposSet = new Set();
         let estadosSet = new Set();
 
-        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
+        let rows = document.querySelectorAll(`#tabla-\${tipoTab}-content tbody tr`);
         rows.forEach(r => {
             let tCell = r.querySelector('.col-tipo');
             let eCell = r.querySelector('.col-estado');
@@ -416,13 +417,13 @@ function poblarFiltrosTablas() {
 
         let htmlTipo = '<option value="TODOS">Todos</option>';
         Array.from(tiposSet).sort().forEach(t => {
-            htmlTipo += `<option value="${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
+            htmlTipo += `<option value="\${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
         });
         selectTipo.innerHTML = htmlTipo;
 
         let htmlEstado = '<option value="TODOS">Todos</option>';
         Array.from(estadosSet).sort().forEach(e => {
-            htmlEstado += `<option value="${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
+            htmlEstado += `<option value="\${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
         });
         selectEstado.innerHTML = htmlEstado;
     });
@@ -434,14 +435,14 @@ function aplicarFiltrosTablas() {
 
 function aplicarFiltrosTablaInternos() {
     ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
+        let selectTipo = document.getElementById(`filtro-tabla-\${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-\${tipoTab}-estado`);
         if (!selectTipo || !selectEstado) return;
 
         let filtroTipo = selectTipo.value;
         let filtroEstado = selectEstado.value;
 
-        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
+        let rows = document.querySelectorAll(`#tabla-\${tipoTab}-content tbody tr`);
         rows.forEach(r => {
             let tCell = r.querySelector('.col-tipo');
             let eCell = r.querySelector('.col-estado');
@@ -485,178 +486,10 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
     mapaRegistrosPorId = {};
 
     registrosSuministros.forEach(item => {
-        const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
+        const contenidoTotal = `${item.id}${item.tramo} ${item.agua}${item.luz}`.toLowerCase();
         const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
 
         const customIcon = L.divIcon({
             className: 'pin-etiqueta-contenedor',
             html: `
-                <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${item.id}</div>
-            `,
-            iconSize: [80, 24],
-            iconAnchor: [7, 12]
-        });
-
-        const popupContent = `
-            <div style="font-family: 'Inter', sans-serif; width: 270px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
-                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
-                
-                <div style="background: #eaf2f8; padding: 6px 8px; border-radius: 4px; margin-bottom: 5px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
-                    ${item.agua}
-                </div>
-
-                <div style="background: #fef9e7; padding: 6px 8px; border-radius: 4px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
-                    ${item.luz}
-                </div>
-            </div>
-        `;
-
-        const marker = L.marker([item.lat, item.lng], { icon: customIcon });
-        marker.bindPopup(popupContent);
-        
-        marker.itemData = {
-            id: item.id,
-            tramo: item.tramo,
-            agua: item.agua,
-            luz: item.luz,
-            textoBusqueda: contenidoTotal
-        };
-
-        todosLosMarcadores.push(marker);
-        mapaRegistrosPorId[item.id] = marker;
-        capaMarcadores.addLayer(marker);
-        boundsGlobal.push([item.lat, item.lng]);
-    });
-
-    cargarTablas(registrosSuministros);
-
-    if (boundsGlobal.length > 0 && map.getBounds().isValid() === false) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
-    }
-}
-
-function filtrarMapa() {
-    const textoBusqueda = document.getElementById('input-buscar').value.toLowerCase().trim();
-    const tipoFiltro = document.getElementById('select-tipo').value;
-    const empresaFiltro = document.getElementById('select-empresa').value;
-    const estadoFiltro = document.getElementById('select-estado').value;
-
-    capaMarcadores.clearLayers();
-    let marcadoresVisibles = [];
-    let registrosFiltradosTablas = [];
-
-    todosLosMarcadores.forEach(marker => {
-        const data = marker.itemData;
-        const cumpleTexto = textoBusqueda === "" || data.textoBusqueda.includes(textoBusqueda);
-        let cumpleFiltros = true;
-
-        if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro") && !data.agua.toLowerCase().includes("💧")) cumpleFiltros = false;
-        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro") && !data.luz.toLowerCase().includes("⚡")) cumpleFiltros = false;
-
-        if (empresaFiltro !== "TODAS") {
-            if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (estadoFiltro !== "TODOS") {
-            if (!data.textoBusqueda.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (cumpleTexto && cumpleFiltros) {
-            const colorPin = obtenerColorPin(data.textoBusqueda, estadoFiltro);
-            const customIcon = L.divIcon({
-                className: 'pin-etiqueta-contenedor',
-                html: `
-                    <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${data.id}</div>
-                `,
-                iconSize: [80, 24],
-                iconAnchor: [7, 12]
-            });
-            marker.setIcon(customIcon);
-
-            capaMarcadores.addLayer(marker);
-            marcadoresVisibles.push(marker);
-            registrosFiltradosTablas.push({ id: data.id, tramo: data.tramo, agua: data.agua, luz: data.luz });
-        }
-    });
-
-    cargarTablas(registrosFiltradosTablas);
-
-    if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
-        if (marcadoresVisibles.length === 1) {
-            const unicoMarker = marcadoresVisibles[0];
-            map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
-            unicoMarker.openPopup();
-        } else {
-            const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
-            if (grupoBounds.isValid()) {
-                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16, animate: true });
-            }
-        }
-    }
-}
-
-function limpiarFiltros() {
-    document.getElementById('input-buscar').value = "";
-    document.getElementById('select-tipo').value = "TODOS";
-    document.getElementById('select-empresa').value = "TODAS";
-    document.getElementById('select-estado').value = "TODOS";
-
-    cargarMapa("TODOS");
-    if (boundsGlobal.length > 0) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
-    }
-}
-
-function exportarExcel(tipoServicio) {
-    let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
-    let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
-    let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
-
-    let ahora = new Date();
-    let fechaStr = ahora.toLocaleDateString('es-PE');
-    let horaStr = ahora.toLocaleTimeString('es-PE');
-    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
-
-    let wsData = [
-        [tituloReporte],
-        [timestampStr],
-        [],
-        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO"]
-    ];
-
-    datosOrdenados.forEach(item => {
-        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
-    });
-
-    let wb = XLSX.utils.book_new();
-    let ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = [{wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 15}, {wch: 25}];
-
-    XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
-    XLSX.writeFile(wb, tipoServicio === 'AGUA' ? `Reporte_Suministros_Agua_CCM2L.xlsx` : `Reporte_Suministros_Electricidad_CCM2L.xlsx`);
-}
-
-const STORAGE_KEY_DISCLAIMER = "ccm2l_suministros_disclaimer_accepted_v1";
-
-function verificarDisclaimer() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (!localStorage.getItem(STORAGE_KEY_DISCLAIMER)) {
-        if (modal) modal.style.display = 'flex';
-    } else {
-        if (modal) modal.style.display = 'none';
-    }
-}
-
-function aceptarDisclaimer() {
-    localStorage.setItem(STORAGE_KEY_DISCLAIMER, "true");
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        modal.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }
-}
+                <div style="width: 1
