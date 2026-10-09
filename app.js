@@ -4,10 +4,9 @@ const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3
 
 // --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
 
-// Credenciales oficiales de su proyecto de Firebase (Cerramientos L2L4)
 const firebaseConfig = {
     apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg",
     authDomain: "cerramientos-l2l4-b157e.firebaseapp.com",
@@ -22,7 +21,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// Identificador exacto de este repositorio en la matriz de Firestore
 const REPO_ACTUAL = "suministros-metro-l2";
 
 let registrosSuministros = [];
@@ -30,13 +28,13 @@ let datosBrutosAgua = [];
 let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
 
-// Control de flujo al cargar la página
+// Carga inmediata de la aplicación para evitar pantallas congeladas
 document.addEventListener("DOMContentLoaded", () => {
     verificarDisclaimer();
     inicializarMapaBase();
     cargarDatosDesdeHojas();
 
-    // Escuchar cambios de estado de autenticación
+    // Validar sesión en segundo plano sin bloquear la interfaz
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             await validarPermisosUsuario(user);
@@ -61,17 +59,16 @@ async function validarPermisosUsuario(user) {
             if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
                 console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
-
                 if (!esAdmin && !puedeEscribir) {
                     aplicarModoSoloLectura();
                 }
             } else {
                 alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
-                await auth.signOut();
+                await signOut(auth);
             }
         } else {
             alert(`El correo ${emailUser} no está registrado en la base de datos de control de accesos.`);
-            await auth.signOut();
+            await signOut(auth);
         }
     } catch (error) {
         console.error("Error al validar autorizaciones en Firestore:", error);
@@ -83,11 +80,11 @@ function mostrarBotonAutenticacion() {
     if (!contenedorLogin) {
         contenedorLogin = document.createElement("div");
         contenedorLogin.id = "panel-login-flotante";
-        contenedorLogin.style.cssText = "position:fixed; top:20px; right:350px; z-index:9999; background:#1e293b; padding:10px 15px; border-radius:8px; border:1px solid #334155; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:flex; align-items:center; gap:10px;";
+        contenedorLogin.style.cssText = "position:fixed; top:15px; right:360px; z-index:9999; background:#1e293b; padding:6px 12px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:flex; align-items:center; gap:8px;";
         contenedorLogin.innerHTML = `
-            <span style="font-size:11px; color:#f8fafc; font-weight:600;">Acceso Restringido:</span>
-            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;">
-                Iniciar Sesión Google
+            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Control Admin:</span>
+            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">
+                🔑 Login Google
             </button>
         `;
         document.body.appendChild(contenedorLogin);
@@ -97,7 +94,7 @@ function mostrarBotonAutenticacion() {
                 await signInWithPopup(auth, provider);
             } catch (err) {
                 console.error("Error al autenticar con Google:", err);
-                alert("No se pudo completar el inicio de sesión. Verifique los permisos del navegador.");
+                alert("Asegúrese de haber agregado 'vlacaspa.github.io' en los dominios autorizados de su consola de Firebase.");
             }
         };
     } else {
@@ -107,9 +104,7 @@ function mostrarBotonAutenticacion() {
 
 function ocultarBotonAutenticacion() {
     const contenedorLogin = document.getElementById("panel-login-flotante");
-    if (contenedorLogin) {
-        contenedorLogin.style.display = "none";
-    }
+    if (contenedorLogin) contenedorLogin.style.display = "none";
 }
 
 function aplicarModoSoloLectura() {
@@ -198,7 +193,6 @@ async function cargarDatosDesdeHojas() {
         datosBrutosLuz = [];
         let mapaEstructuras = {};
 
-        // Procesar Hoja de Agua
         if (filasAgua.length > 1) {
             let headersAgua = filasAgua[0].map(h => h.trim().toUpperCase());
             let idxId = buscarIndice(headersAgua, ["ID", "ESTRUCTURA", "CODIGO"]);
@@ -249,7 +243,6 @@ async function cargarDatosDesdeHojas() {
             }
         }
 
-        // Procesar Hoja de Luz
         if (filasLuz.length > 1) {
             let headersLuz = filasLuz[0].map(h => h.trim().toUpperCase());
             let idxId = buscarIndice(headersLuz, ["ID", "ESTRUCTURA", "CODIGO"]);
