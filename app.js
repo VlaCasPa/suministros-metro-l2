@@ -9,7 +9,7 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10
 
 // Credenciales de su proyecto central de Firebase (Cerramientos L2L4)
 const firebaseConfig = {
-    apiKey: "SU_API_KEY_REAL",
+    apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg",
     authDomain: "cerramientos-l2l4-b157e.firebaseapp.com",
     projectId: "cerramientos-l2l4-b157e",
     storageBucket: "cerramientos-l2l4-b157e.appspot.com",
