@@ -2,7 +2,7 @@
 const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=0&single=true&output=csv';
 const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=1407636453&single=true&output=csv';
 
-// --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO (Versiones corregidas) ---
+// --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -57,17 +57,17 @@ async function validarPermisosUsuario(user) {
             const puedeEscribir = datosUsuario.permisos_escritura || false;
 
             if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
-                console.log(`Acceso autorizado para ${emailUser} en${REPO_ACTUAL}`);
+                console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
                 if (!esAdmin && !puedeEscribir) {
                     aplicarModoSoloLectura();
                 }
             } else {
-                alert(`Acceso denegado: El correo \${emailUser} no cuenta con privilegios para este módulo.`);
+                alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
                 await signOut(auth);
             }
         } else {
-            alert(`El correo \${emailUser} no está registrado en la base de datos de control de accesos.`);
+            alert(`El correo ${emailUser} no está registrado en la base de datos de control de accesos.`);
             await signOut(auth);
         }
     } catch (error) {
@@ -235,7 +235,7 @@ async function cargarDatosDesdeHojas() {
                 if (sumNum) {
                     mapaEstructuras[id].aguaList.push(`
                         <div class="popup-item-block">
-                            <div class="popup-line-primary">💧 <b>\${sumNum}</b></div>
+                            <div class="popup-line-primary">💧 <b>${sumNum}</b></div>
                             <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
                         </div>
                     `);
@@ -334,8 +334,8 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
 function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
     let filasHtml = "";
     if (!textoSuministros || textoSuministros.includes("Sin registro")) {
-        return `<tr class="fila-interactiva" onclick="centrarEnId('\${idEstrucutra}')">
-            <td><b>\${idEstrucutra}</b></td>
+        return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
+            <td><b>${idEstrucutra}</b></td>
             <td>-</td>
             <td>-</td>
             <td class="col-tipo">-</td>
@@ -371,11 +371,11 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         if (!numSuministro) numSuministro = limpio;
 
         filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
-            <td><b>\${idEstrucutra}</b></td>
-            <td>\${numSuministro}</td>
-            <td>\${empresa}</td>
-            <td class="col-tipo">\${tipoVal}</td>
-            <td class="col-estado">\${estado}</td>
+            <td><b>${idEstrucutra}</b></td>
+            <td>${numSuministro}</td>
+            <td>${empresa}</td>
+            <td class="col-tipo">${tipoVal}</td>
+            <td class="col-estado">${estado}</td>
         </tr>`;
     });
 
@@ -401,8 +401,8 @@ function cargarTablas(registrosFiltrados) {
 
 function poblarFiltrosTablas() {
     ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-\${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-\${tipoTab}-estado`);
+        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
         if (!selectTipo || !selectEstado) return;
 
         let valTipoActual = selectTipo.value;
@@ -411,7 +411,7 @@ function poblarFiltrosTablas() {
         let tiposSet = new Set();
         let estadosSet = new Set();
 
-        let rows = document.querySelectorAll(`#tabla-\${tipoTab}-content tbody tr`);
+        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
         rows.forEach(r => {
             let tCell = r.querySelector('.col-tipo');
             let eCell = r.querySelector('.col-estado');
@@ -421,13 +421,13 @@ function poblarFiltrosTablas() {
 
         let htmlTipo = '<option value="TODOS">Todos</option>';
         Array.from(tiposSet).sort().forEach(t => {
-            htmlTipo += `<option value="\${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
+            htmlTipo += `<option value="${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
         });
         selectTipo.innerHTML = htmlTipo;
 
         let htmlEstado = '<option value="TODOS">Todos</option>';
         Array.from(estadosSet).sort().forEach(e => {
-            htmlEstado += `<option value="\${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
+            htmlEstado += `<option value="${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
         });
         selectEstado.innerHTML = htmlEstado;
     });
@@ -439,14 +439,14 @@ function aplicarFiltrosTablas() {
 
 function aplicarFiltrosTablaInternos() {
     ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-\${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-\${tipoTab}-estado`);
+        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
+        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
         if (!selectTipo || !selectEstado) return;
 
         let filtroTipo = selectTipo.value;
         let filtroEstado = selectEstado.value;
 
-        let rows = document.querySelectorAll(`#tabla-\${tipoTab}-content tbody tr`);
+        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
         rows.forEach(r => {
             let tCell = r.querySelector('.col-tipo');
             let eCell = r.querySelector('.col-estado');
@@ -490,14 +490,14 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
     mapaRegistrosPorId = {};
 
     registrosSuministros.forEach(item => {
-        const contenidoTotal = `${item.id}${item.tramo} ${item.agua}${item.luz}`.toLowerCase();
+        const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
         const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
 
         const customIcon = L.divIcon({
             className: 'pin-etiqueta-contenedor',
             html: `
-                <div style="width: 14px; height: 14px; background-color: \${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">\${item.id}</div>
+                <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
+                <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${item.id}</div>
             `,
             iconSize: [80, 24],
             iconAnchor: [7, 12]
@@ -509,12 +509,12 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
                 
                 <div style="background: #eaf2f8; padding: 6px 8px; border-radius: 4px; margin-bottom: 5px;">
                     <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
-                    \${item.agua}
+                    ${item.agua}
                 </div>
 
                 <div style="background: #fef9e7; padding: 6px 8px; border-radius: 4px;">
                     <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
-                    \${item.luz}
+                    ${item.luz}
                 </div>
             </div>
         `;
@@ -574,8 +574,8 @@ function filtrarMapa() {
             const customIcon = L.divIcon({
                 className: 'pin-etiqueta-contenedor',
                 html: `
-                    <div style="width: 14px; height: 14px; background-color: \${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">\${data.id}</div>
+                    <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
+                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${data.id}</div>
                 `,
                 iconSize: [80, 24],
                 iconAnchor: [7, 12]
@@ -624,7 +624,7 @@ function exportarExcel(tipoServicio) {
     let ahora = new Date();
     let fechaStr = ahora.toLocaleDateString('es-PE');
     let horaStr = ahora.toLocaleTimeString('es-PE');
-    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} -${horaStr}`;
+    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
 
     let wsData = [
         [tituloReporte],
@@ -634,7 +634,7 @@ function exportarExcel(tipoServicio) {
     ];
 
     datosOrdenados.forEach(item => {
-        wsData.path([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
+        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
     });
 
     let wb = XLSX.utils.book_new();
@@ -642,7 +642,7 @@ function exportarExcel(tipoServicio) {
     ws['!cols'] = [{wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 15}, {wch: 25}];
 
     XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
-    XLSX.writeFile(wb, tipoServicio === 'AGUA` ? `Reporte_Suministros_Agua_CCM2L.xlsx` : `Reporte_Suministros_Electricidad_CCM2L.xlsx`);
+    XLSX.writeFile(wb, tipoServicio === 'AGUA' ? "Reporte_Suministros_Agua_CCM2L.xlsx" : "Reporte_Suministros_Electricidad_CCM2L.xlsx");
 }
 
 const STORAGE_KEY_DISCLAIMER = "ccm2l_suministros_disclaimer_accepted_v1";
