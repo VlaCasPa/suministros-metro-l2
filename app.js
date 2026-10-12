@@ -142,6 +142,17 @@ function inicializarMapaBase() {
     }).addTo(map);
 
     capaMarcadores = L.layerGroup().addTo(map);
+
+    // Evento global: Si se hace clic en el fondo libre del mapa, se limpia la selección en las tablas
+    map.on('click', () => {
+        limpiarSeleccionTablas();
+    });
+}
+
+function limpiarSeleccionTablas() {
+    document.querySelectorAll('tr.fila-interactiva').forEach(tr => {
+        tr.classList.remove('fila-resaltada');
+    });
 }
 
 // Parseador CSV robusto
@@ -412,77 +423,6 @@ function cargarTablas(registrosFiltrados) {
 
     document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua;
     document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz;
-
-    poblarFiltrosTablas();
-    aplicarFiltrosTablaInternos();
-}
-
-function poblarFiltrosTablas() {
-    ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
-        if (!selectTipo || !selectEstado) return;
-
-        let valTipoActual = selectTipo.value;
-        let valEstadoActual = selectEstado.value;
-
-        let tiposSet = new Set();
-        let estadosSet = new Set();
-
-        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
-        rows.forEach(r => {
-            let tCell = r.querySelector('.col-tipo');
-            let eCell = r.querySelector('.col-estado');
-            if (tCell && tCell.innerText.trim() !== '-') tiposSet.add(tCell.innerText.trim());
-            if (eCell && eCell.innerText.trim() !== '') estadosSet.add(eCell.innerText.trim());
-        });
-
-        let htmlTipo = '<option value="TODOS">Todos</option>';
-        Array.from(tiposSet).sort().forEach(t => {
-            htmlTipo += `<option value="${t}" ${t === valTipoActual ? 'selected' : ''}>${t}</option>`;
-        });
-        selectTipo.innerHTML = htmlTipo;
-
-        let htmlEstado = '<option value="TODOS">Todos</option>';
-        Array.from(estadosSet).sort().forEach(e => {
-            htmlEstado += `<option value="${e}" ${e === valEstadoActual ? 'selected' : ''}>${e}</option>`;
-        });
-        selectEstado.innerHTML = htmlEstado;
-    });
-}
-
-function aplicarFiltrosTablas() {
-    aplicarFiltrosTablaInternos();
-}
-
-function aplicarFiltrosTablaInternos() {
-    ['agua', 'luz'].forEach(tipoTab => {
-        let selectTipo = document.getElementById(`filtro-tabla-${tipoTab}-tipo`);
-        let selectEstado = document.getElementById(`filtro-tabla-${tipoTab}-estado`);
-        if (!selectTipo || !selectEstado) return;
-
-        let filtroTipo = selectTipo.value;
-        let filtroEstado = selectEstado.value;
-
-        let rows = document.querySelectorAll(`#tabla-${tipoTab}-content tbody tr`);
-        rows.forEach(r => {
-            let tCell = r.querySelector('.col-tipo');
-            let eCell = r.querySelector('.col-estado');
-            if (!tCell || !eCell) return;
-
-            let valTipo = tCell.innerText.trim();
-            let valEstado = eCell.innerText.trim();
-
-            let cumpleTipo = (filtroTipo === 'TODOS' || valTipo === filtroTipo);
-            let cumpleEstado = (filtroEstado === 'TODOS' || valEstado === filtroEstado);
-
-            if (cumpleTipo && cumpleEstado) {
-                r.style.display = '';
-            } else {
-                r.style.display = 'none';
-            }
-        });
-    });
 }
 
 function centrarEnId(idBuscado) {
@@ -503,9 +443,7 @@ function resaltarPin(idBuscado) {
 }
 
 function resaltarFilaEnTablas(idBuscado) {
-    document.querySelectorAll('tr.fila-interactiva').forEach(tr => {
-        tr.classList.remove('fila-resaltada');
-    });
+    limpiarSeleccionTablas();
 
     const filasCoincidentes = document.querySelectorAll(`tr.fila-interactiva[data-id="${idBuscado}"]`);
     filasCoincidentes.forEach(tr => {
@@ -554,7 +492,8 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
         const marker = L.marker([item.lat, item.lng], { icon: customIcon });
         marker.bindPopup(popupContent);
         
-        marker.on('click', () => {
+        marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
             resaltarFilaEnTablas(item.id);
         });
 
@@ -648,6 +587,7 @@ function limpiarFiltros() {
     document.getElementById('select-estado').value = "TODOS";
 
     cargarMapa("TODOS");
+    limpiarSeleccionTablas();
     if (boundsGlobal.length > 0) {
         map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
     }
