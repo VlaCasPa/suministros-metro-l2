@@ -529,10 +529,17 @@ tr.fila-resaltada {
     #seccion-tablas {
         width: 100vw;
         height: auto;
-        min-height: calc(100vh - 280px);
+        min-height: auto;
         border-left: none;
         border-top: 2px solid #334155;
-        overflow-y: visible;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Corrección clave: Altura fija individual para cada panel de tabla en móvil */
+    .tabla-panel {
+        height: 280px !important;
+        flex: none !important;
     }
 
     #btn-toggle-filtros {
@@ -588,7 +595,7 @@ tr.fila-resaltada {
     }
 
     .table-container {
-        max-height: 170px;
+        max-height: 210px !important;
     }
 
     .tabla-panel.tabla-luz .tabla-header span {
