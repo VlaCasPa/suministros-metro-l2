@@ -33,7 +33,7 @@ let usuarioActualGlobal = null;
 // Control de flujo inicial al cargar la página (Independiente y seguro)
 document.addEventListener("DOMContentLoaded", () => {
     inicializarMapaBase();
-    cargarDatosDesdeHojas(); // Carga garantizada de Google Sheets y Leaflet
+    cargarDatosDesdeHojas();
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -114,7 +114,6 @@ async function validarPermisosYDisclaimer(user) {
         }
     } catch (error) {
         console.error("Error al validar contra Firestore:", error);
-        // Resguardo en caso de fallo de reglas para administradores
         if (emailUser === "zebaxx@gmail.com" || emailUser === "vcasasp@ccmetrolima.com") {
             verificarDisclaimerUsuario();
         } else {
