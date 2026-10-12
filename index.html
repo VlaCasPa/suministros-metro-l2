@@ -35,6 +35,9 @@
         <div id="seccion-mapa">
             <div id="titulo-flotante">Suministros - L2 & L4</div>
 
+            <!-- Botón para colapsar/desplegar filtros en dispositivos móviles -->
+            <button id="btn-toggle-filtros" onclick="toggleFiltrosMovil()">⚙️ Filtros</button>
+
             <div id="panel-filtros">
                 <div class="filtro-grupo">
                     <label for="input-buscar">🔍 Buscar Suministro / ID:</label>
@@ -157,6 +160,14 @@
         </div>
 
     </div>
+
+    <!-- Script auxiliar para desplegar filtros en móvil -->
+    <script>
+        function toggleFiltrosMovil() {
+            const panel = document.getElementById('panel-filtros');
+            panel.classList.toggle('activo');
+        }
+    </script>
 
     <!-- Librerías JS y Script Principal -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
