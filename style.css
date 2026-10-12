@@ -516,8 +516,14 @@ tr.fila-resaltada {
 
     #seccion-mapa {
         width: 100vw;
-        height: 280px; /* Altura estricta en píxeles para evitar que Leaflet renderice en 0px en celulares */
+        height: 280px !important;
         flex-shrink: 0;
+        position: relative;
+    }
+
+    #map {
+        width: 100vw !important;
+        height: 280px !important;
     }
 
     #seccion-tablas {
