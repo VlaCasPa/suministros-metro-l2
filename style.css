@@ -112,7 +112,6 @@ body {
     display: flex;
     gap: 10px;
     align-items: flex-end;
-    flex-wrap: wrap;
 }
 
 .filtro-grupo {
@@ -146,6 +145,19 @@ body {
     font-weight: bold;
     cursor: pointer;
     font-size: 11px;
+}
+
+/* Botón colapsable para filtros en móvil (oculto en PC) */
+#btn-toggle-filtros {
+    display: none;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
 }
 
 #panel-leyenda-estados {
@@ -249,6 +261,7 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 8px;
+    max-height: 185px; /* Altura exacta para mostrar 5 filas y activar scroll */
 }
 
 table {
@@ -301,7 +314,13 @@ tr.fila-interactiva {
     background-color: rgba(217, 119, 6, 0.25);
 }
 
-/* Modal de Disclaimer con z-index superior absoluto */
+/* Fila resaltada al interactuar con el mapa */
+tr.fila-resaltada {
+    background-color: rgba(37, 99, 235, 0.35) !important;
+    font-weight: bold;
+}
+
+/* Modal de Disclaimer */
 .modal-overlay-disclaimer {
     position: fixed;
     top: 0;
@@ -378,7 +397,7 @@ tr.fila-interactiva {
 }
 
 /* ========================================================
-   DISEÑO RESPONSIVO PARA DISPOSITIVOS MÓVILES Y TABLETS
+   DISEÑO RESPONSIVO PARA DISPOSITIVOS MÓVILES
    ======================================================== */
 @media screen and (max-width: 992px) {
     #dashboard-container {
@@ -389,34 +408,55 @@ tr.fila-interactiva {
 
     #seccion-mapa {
         width: 100vw;
-        height: 60vh;
+        height: 45vh; /* Mapa reducido en vertical para dejar espacio a las tablas */
     }
 
     #seccion-tablas {
         width: 100vw;
         height: auto;
-        min-height: 70vh;
+        min-height: 55vh;
         border-left: none;
         border-top: 2px solid #334155;
     }
 
+    #btn-toggle-filtros {
+        display: inline-block;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 1001;
+    }
+
     #panel-filtros {
-        position: relative;
-        top: auto;
-        right: auto;
-        margin: 10px;
-        width: calc(100% - 20px);
-        box-sizing: border-box;
+        display: none; /* Colapsado por defecto en móvil */
+        position: absolute;
+        top: 55px;
+        right: 15px;
+        left: 15px;
+        flex-direction: column;
+        align-items: stretch;
+        background: rgba(15, 23, 42, 0.98);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    #panel-filtros.activo {
+        display: flex;
     }
 
     #titulo-flotante {
-        top: 10px;
-        left: 10px;
+        top: 15px;
+        left: 15px;
         font-size: 11px;
         padding: 6px 10px;
     }
 
     #panel-leyenda-estados {
-        display: none; /* Ocultar leyenda flotante en móviles para ganar espacio visual */
+        display: none; /* Ocultar leyenda en móvil para mayor limpieza */
+    }
+
+    .table-container {
+        max-height: 165px; /* Altura estricta para 5 filas visibles con scroll en móvil */
     }
 }
