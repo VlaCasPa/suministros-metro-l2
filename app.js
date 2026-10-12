@@ -352,7 +352,7 @@ function obtenerColorPin(textoTotal, estadoFiltroSelect) {
 function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
     let filasHtml = "";
     if (!textoSuministros || textoSuministros.includes("Sin registro")) {
-        return `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')">
+        return `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')">
             <td><b>${idEstrucutra}</b></td>
             <td>-</td>
             <td>-</td>
@@ -388,7 +388,7 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         if (numSuministro.includes("(")) numSuministro = numSuministro.split("(")[0].trim();
         if (!numSuministro) numSuministro = limpio;
 
-        filasHtml += `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
+        filasHtml += `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
             <td><b>${idEstrucutra}</b></td>
             <td>${numSuministro}</td>
             <td>${empresa}</td>
@@ -397,7 +397,7 @@ function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
         </tr>`;
     });
 
-    return filasHtml || `<tr class="fila-interactiva" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td class="col-tipo">-</td><td class="col-estado">SIN REGISTRO</td></tr>`;
+    return filasHtml || `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td class="col-tipo">-</td><td class="col-estado">SIN REGISTRO</td></tr>`;
 }
 
 function cargarTablas(registrosFiltrados) {
@@ -490,6 +490,7 @@ function centrarEnId(idBuscado) {
     if (markerObj) {
         map.flyTo(markerObj.getLatLng(), 17, { animate: true, duration: 0.8 });
         markerObj.openPopup();
+        resaltarFilaEnTablas(idBuscado);
     }
 }
 
@@ -497,7 +498,20 @@ function resaltarPin(idBuscado) {
     let markerObj = mapaRegistrosPorId[idBuscado];
     if (markerObj) {
         markerObj.openPopup();
+        resaltarFilaEnTablas(idBuscado);
     }
+}
+
+function resaltarFilaEnTablas(idBuscado) {
+    document.querySelectorAll('tr.fila-interactiva').forEach(tr => {
+        tr.classList.remove('fila-resaltada');
+    });
+
+    const filasCoincidentes = document.querySelectorAll(`tr.fila-interactiva[data-id="${idBuscado}"]`);
+    filasCoincidentes.forEach(tr => {
+        tr.classList.add('fila-resaltada');
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 }
 
 function cargarMapa(estadoFiltroSelect = "TODOS") {
@@ -540,6 +554,10 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
         const marker = L.marker([item.lat, item.lng], { icon: customIcon });
         marker.bindPopup(popupContent);
         
+        marker.on('click', () => {
+            resaltarFilaEnTablas(item.id);
+        });
+
         marker.itemData = {
             id: item.id,
             tramo: item.tramo,
