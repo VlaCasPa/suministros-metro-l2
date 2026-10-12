@@ -93,12 +93,11 @@ async function validarPermisosYDisclaimer(user) {
         if (docSnap.exists()) {
             const datosUsuario = docSnap.data();
             const esAdmin = datosUsuario.es_admin || false;
-            const reposPermitidos = datosUsuario.repositorios_permitidos || [];
+            const reposPermitidos = datosUsuario.repositorios_permitidos || datosUsuario.permisos_escritura || [];
 
             let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
-                // Verificar si ya aceptó el disclaimer previamente en la colección de aceptaciones
                 const discRef = doc(db, "aceptaciones_disclaimer", emailUser);
                 const discSnap = await getDoc(discRef);
 
@@ -111,6 +110,7 @@ async function validarPermisosYDisclaimer(user) {
                 restringirAccesoNoAutorizado();
             }
         } else {
+            console.warn(`El usuario ${emailUser} no se encontró en la colección 'usuarios' de Firestore.`);
             restringirAccesoNoAutorizado();
         }
     } catch (error) {
@@ -139,7 +139,6 @@ function ocultarDisclaimer() {
     }
 }
 
-// Registrar aceptación de términos en Firebase Firestore
 window.aceptarDisclaimer = async function() {
     if (!usuarioActualGlobal) return;
     const emailUser = usuarioActualGlobal.email.toLowerCase().trim();
@@ -157,7 +156,7 @@ window.aceptarDisclaimer = async function() {
         ocultarDisclaimer();
     } catch (err) {
         console.error("Error al registrar aceptación en Firestore:", err);
-        ocultarDisclaimer(); // Permite continuar aun si falla el registro de auditoría
+        ocultarDisclaimer();
     }
 };
 
@@ -488,7 +487,6 @@ function cargarMapaYSuministros(listaEstructuras) {
 
     renderizarTablas(listaEstructuras);
 
-    // Zoom out global inicial: Centrar el mapa abarcando todas las estructuras de manera panorámica
     if (boundsGlobal.length > 0) {
         map.fitBounds(boundsGlobal, { padding: [40, 40], maxZoom: 14, animate: false });
     }
