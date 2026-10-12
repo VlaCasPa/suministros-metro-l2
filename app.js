@@ -402,14 +402,14 @@ function cargarMapaYSuministros(listaEstructuras) {
         `).join("") : "Sin registro de luz";
 
         const popupContent = `
-            <div style="font-family: 'Inter', sans-serif; width: 270px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
-                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
-                <div style="background: #eaf2f8; padding: 6px 8px; border-radius: 4px; margin-bottom: 5px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
+            <div style="font-family: 'Inter', sans-serif; width: 250px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
+                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 5px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
+                <div style="background: #eaf2f8; padding: 5px 6px; border-radius: 4px; margin-bottom: 4px;">
+                    <div style="font-weight: 700; font-size: 9px; color: #1e3a4c; margin-bottom: 2px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
                     ${aguaHtml}
                 </div>
-                <div style="background: #fef9e7; padding: 6px 8px; border-radius: 4px;">
-                    <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
+                <div style="background: #fef9e7; padding: 5px 6px; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 9px; color: #78350f; margin-bottom: 2px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
                     ${luzHtml}
                 </div>
             </div>
@@ -433,8 +433,9 @@ function cargarMapaYSuministros(listaEstructuras) {
 
     renderizarTablas(listaEstructuras);
 
-    if (boundsGlobal.length > 0 && map.getBounds().isValid() === false) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
+    // Zoom out global inicial: Centrar el mapa abarcando todas las estructuras de manera panorámica
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [40, 40], maxZoom: 14, animate: false });
     }
 }
 
@@ -493,7 +494,7 @@ window.limpiarFiltros = function() {
     cargarMapaYSuministros(registrosSuministros);
     limpiarSeleccionTablas();
     if (boundsGlobal.length > 0) {
-        map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
+        map.fitBounds(boundsGlobal, { padding: [40, 40], maxZoom: 14, animate: true });
     }
 }
 
