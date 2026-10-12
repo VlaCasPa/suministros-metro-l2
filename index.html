@@ -1,625 +1,181 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #0f172a;
-    color: #f8fafc;
-    overflow-x: hidden;
-}
-
-#dashboard-container {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-}
-
-#seccion-mapa {
-    position: relative;
-    width: 66.66%;
-    height: 100vh;
-}
-
-#seccion-tablas {
-    width: 33.34%;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: #1e293b;
-    border-left: 2px solid #334155;
-    box-shadow: -4px 0 15px rgba(0,0,0,0.3);
-}
-
-#map {
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-}
-
-.leaflet-tile-pane {
-    filter: grayscale(100%) contrast(100%) brightness(100%) opacity(65%);
-    -webkit-filter: grayscale(100%) contrast(100%) brightness(100%) opacity(65%);
-}
-
-.leaflet-popup-content-wrapper {
-    background-color: #C5DCDE !important;
-    color: #1E293B;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-    padding: 2px;
-}
-
-.leaflet-popup-content {
-    margin: 10px 12px !important;
-    line-height: 1.4;
-}
-
-.leaflet-popup-tip {
-    background-color: #C5DCDE !important;
-}
-
-.popup-item-block {
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px dashed rgba(0,0,0,0.15);
-}
-.popup-item-block:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-.popup-line-primary {
-    font-size: 11px;
-    font-weight: 600;
-    color: #0f172a;
-    margin-bottom: 2px;
-}
-.popup-line-secondary {
-    font-size: 10px;
-    color: #334155;
-    padding-left: 14px;
-}
-
-.pin-etiqueta-contenedor {
-    display: flex !important;
-    align-items: center;
-    white-space: nowrap;
-}
-
-#titulo-flotante {
-    position: absolute;
-    top: 15px;
-    left: 60px;
-    z-index: 1000;
-    background: rgba(15, 23, 42, 0.95);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 13px;
-    border: 1px solid #334155;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-#panel-filtros {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    z-index: 1000;
-    background: rgba(15, 23, 42, 0.95);
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.filtro-grupo {
-    display: flex;
-    flex-direction: column;
-}
-
-.filtro-grupo label {
-    font-size: 10px;
-    color: #94a3b8;
-    margin-bottom: 3px;
-    font-weight: 600;
-}
-
-.filtro-grupo input, .filtro-grupo select {
-    background: #1e293b;
-    border: 1px solid #475569;
-    color: #f8fafc;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    outline: none;
-}
-
-#btn-limpiar {
-    background: #e11d48;
-    color: #ffffff;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-#btn-toggle-filtros {
-    display: none;
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 11px;
-    cursor: pointer;
-    z-index: 1001;
-}
-
-#btn-cerrar-filtros {
-    display: none;
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    position: absolute;
-    top: 10px;
-    right: 12px;
-}
-
-#panel-leyenda-estados {
-    position: absolute;
-    bottom: 25px;
-    right: 20px;
-    z-index: 1000;
-    background: rgba(15, 23, 42, 0.95);
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid #334155;
-    color: #f8fafc;
-    font-size: 11px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.leyenda-titulo-est {
-    font-weight: 700;
-    display: block;
-    margin-bottom: 6px;
-    color: #94a3b8;
-    text-transform: uppercase;
-}
-
-.leyenda-fila {
-    display: flex;
-    align-items: center;
-    margin-bottom: 3px;
-}
-
-.leyenda-punto {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 6px;
-    border: 1px solid #ffffff;
-}
-
-#marca-agua-mapa {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.82);
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #0A0A1F;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    pointer-events: none;
-    user-select: none;
-}
-
-.tabla-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-bottom: 2px solid #334155;
-}
-
-.tabla-agua {
-    background-color: #B5D8E8;
-}
-
-.tabla-luz {
-    background-color: #EDE4CC;
-}
-
-.tabla-header {
-    background: rgba(15, 23, 42, 0.95);
-    color: #f8fafc;
-    padding: 10px 15px;
-    font-weight: 700;
-    font-size: 12px;
-    text-transform: uppercase;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.btn-reporte-excel {
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    text-transform: uppercase;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-/* Versión Web: Altura fluida sin límite fijo en max-height */
-.table-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11px;
-    color: #1e293b;
-}
-
-th {
-    background-color: #1e293b;
-    color: #ffffff;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    padding: 6px 8px;
-    text-align: left;
-    font-weight: 700;
-    border-bottom: 2px solid #0f172a;
-}
-
-td {
-    padding: 6px 8px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-tr.fila-interactiva {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.tabla-agua tr.fila-interactiva:hover {
-    background-color: rgba(13, 148, 136, 0.25);
-}
-
-.tabla-luz tr.fila-interactiva:hover {
-    background-color: rgba(217, 119, 6, 0.25);
-}
-
-tr.fila-resaltada {
-    background-color: rgba(37, 99, 235, 0.45) !important;
-    font-weight: bold;
-}
-
-.modal-overlay-login {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(15, 23, 42, 0.92);
-    backdrop-filter: blur(8px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999999;
-}
-
-.login-card {
-    background: #ffffff;
-    color: #1e293b;
-    width: 90%;
-    max-width: 400px;
-    padding: 35px 30px;
-    border-radius: 14px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-sizing: border-box;
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.login-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 22px;
-    font-weight: 700;
-    color: #0f172a;
-}
-
-.login-header p {
-    margin: 0;
-    font-size: 13px;
-    color: #64748b;
-    font-weight: 600;
-}
-
-.login-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.login-input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 13px;
-    box-sizing: border-box;
-    outline: none;
-    color: #1e293b;
-    background: #f8fafc;
-}
-
-.btn-login-sistema {
-    background: #0f172a;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-.login-divider {
-    width: 100%;
-    text-align: center;
-    border-bottom: 1px solid #e2e8f0;
-    line-height: 0.1em;
-    margin: 20px 0;
-}
-
-.login-divider span {
-    background: #ffffff;
-    padding: 0 10px;
-    color: #94a3b8;
-    font-size: 11px;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.btn-google-auth {
-    width: 100%;
-    background: #ffffff;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    padding: 11px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.modal-overlay-disclaimer {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(15, 23, 42, 0.88);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999998;
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-.modal-box {
-    background: #1e293b;
-    border: 1px solid #334155;
-    width: 100%;
-    max-width: 620px;
-    border-radius: 10px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.modal-header-disc {
-    background: #0f172a;
-    padding: 16px 20px;
-    border-bottom: 1px solid #334155;
-    text-align: center;
-}
-
-.modal-header-disc h3 {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: #f8fafc;
-    text-transform: uppercase;
-}
-
-.modal-body-disc {
-    padding: 22px;
-    font-size: 11.5px;
-    line-height: 1.6;
-    color: #cbd5e1;
-    max-height: 55vh;
-    overflow-y: auto;
-    text-align: justify;
-}
-
-.modal-footer-disc {
-    background: #0f172a;
-    padding: 14px 20px;
-    border-top: 1px solid #334155;
-    display: flex;
-    justify-content: flex-end;
-}
-
-#btn-aceptar-disclaimer {
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    padding: 9px 18px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 11px;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-/* ========================================================
-   DISEÑO RESPONSIVO PARA DISPOSITIVOS MÓVILES
-   ======================================================== */
-@media screen and (max-width: 992px) {
-    body {
-        overflow-y: auto;
-    }
-
-    #dashboard-container {
-        flex-direction: column;
-        height: auto;
-        min-height: 100vh;
-        overflow-y: auto;
-    }
-
-    #seccion-mapa {
-        width: 100vw;
-        height: 280px !important;
-        flex-shrink: 0;
-        position: relative;
-    }
-
-    #map {
-        width: 100vw !important;
-        height: 280px !important;
-    }
-
-    #seccion-tablas {
-        width: 100vw;
-        height: auto;
-        min-height: auto;
-        border-left: none;
-        border-top: 2px solid #334155;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Altura fija controlada exclusivamente para la versión móvil */
-    .tabla-panel {
-        height: 280px !important;
-        flex: none !important;
-    }
-
-    #btn-toggle-filtros {
-        display: inline-block;
-        position: absolute;
-        top: 12px;
-        right: 12px;
-    }
-
-    #btn-cerrar-filtros {
-        display: block;
-    }
-
-    #panel-filtros {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 85vw;
-        max-width: 340px;
-        flex-direction: column;
-        align-items: stretch;
-        background: rgba(15, 23, 42, 0.98);
-        padding: 25px 20px 20px 20px;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        z-index: 2000;
-        border: 1px solid #334155;
-    }
-
-    #panel-filtros.activo {
-        display: flex;
-    }
-
-    #titulo-flotante {
-        top: 12px;
-        left: 12px;
-        font-size: 11px;
-        padding: 6px 10px;
-    }
-
-    #panel-leyenda-estados {
-        display: none;
-    }
-
-    table {
-        font-size: 10px;
-    }
-
-    td, th {
-        padding: 5px 6px;
-    }
-
-    .table-container {
-        max-height: 210px !important;
-    }
-
-    .tabla-panel.tabla-luz .tabla-header span {
-        font-size: 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 70%;
-    }
-
-    .leaflet-popup-content-wrapper {
-        max-width: 230px !important;
-    }
-
-    .leaflet-popup-content {
-        font-size: 10px !important;
-        margin: 8px 10px !important;
-    }
-
-    .popup-line-primary {
-        font-size: 10px;
-    }
-
-    .popup-line-secondary {
-        font-size: 9px;
-    }
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control - Suministros L2/L4</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- SheetJS para exportación profesional a Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- 1. VENTANA MODAL DE INICIO DE SESIÓN CORPORATIVO -->
+    <div id="login-modal" class="modal-overlay-login" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Sistema de Control</h2>
+                <p>Administración Contractual Suministros L2/L4</p>
+            </div>
+            <div class="login-form">
+                <input type="email" id="login-email" class="login-input" placeholder="Correo Corporativo">
+                <input type="password" id="login-password" class="login-input" placeholder="Contraseña">
+                <button type="button" class="btn-login-sistema" onclick="loginConCorreoPassword()">Ingresar al Sistema</button>
+                
+                <div class="login-divider"><span>Opciones Alternas</span></div>
+
+                <button type="button" class="btn-google-auth" onclick="loginConGoogle()">
+                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.15v3.15C3.12 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.15C.42 8.08 0 9.73 0 12s.42 3.92 1.15 5.39l4.12-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.12 2.68 1.15 6.61l4.12 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                    Ingresar con Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. VENTANA MODAL DE ADVERTENCIA Y CONFIDENCIALIDAD (DISCLAIMER) -->
+    <div id="disclaimer-modal" class="modal-overlay-disclaimer" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header-disc">
+                <h3>Aviso de Confidencialidad y Uso Restringido</h3>
+            </div>
+            <div class="modal-body-disc">
+                <p>El presente aplicativo y repositorio constituyen una herramienta de gestión operativa de uso exclusivo para el personal autorizado del <strong>Consorcio Constructor Metro 2 de Lima (CCM2L)</strong>. Queda terminantemente prohibida la reproducción, distribución, comercialización o uso de la presente información para fines ajenos a los contractuales y de supervisión de obra.</p>
+                <p>El acceso no autorizado, la extracción, el uso indebido o la divulgación de los datos contenidos contravienen las normas internas de seguridad de la información, el deber de confidencialidad y la <strong>Ley N° 30096 (Ley de Delitos Informáticos)</strong> y la <strong>Ley N° 29733 (Ley de Protección de Datos Personales)</strong>, quedando el infractor sujeto a las sanciones laborales correspondientes y a las responsabilidades civiles y penales previstas en la legislación de la República del Perú.</p>
+            </div>
+            <div class="modal-footer-disc">
+                <button id="btn-aceptar-disclaimer" type="button" onclick="aceptarDisclaimer()">HE LEÍDO Y ACEPTO LOS TÉRMINOS DE CONFIDENCIALIDAD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de Pantalla Dividida -->
+    <div id="dashboard-container">
+        
+        <!-- SECCIÓN IZQUIERDA: MAPA Y FILTROS -->
+        <div id="seccion-mapa">
+            <div id="titulo-flotante">Suministros - L2 & L4</div>
+
+            <!-- Botón flotante para desplegar filtros en móvil -->
+            <button id="btn-toggle-filtros" onclick="toggleFiltrosMovil()">⚙️ Filtros</button>
+
+            <div id="panel-filtros">
+                <!-- Botón X para cerrar la ventana de filtros en móvil -->
+                <button id="btn-cerrar-filtros" onclick="toggleFiltrosMovil()">✕</button>
+
+                <div class="filtro-grupo">
+                    <label for="input-buscar">🔍 Buscar ID / Suministro:</label>
+                    <input type="text" id="input-buscar" placeholder="Ej: E13, 7721849..." onkeyup="filtrarMapa()">
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-tipo">Tipo:</label>
+                    <select id="select-tipo" onchange="filtrarMapa()">
+                        <option value="TODOS">Todos</option>
+                        <option value="DEFINITIVO">Definitivo</option>
+                        <option value="TEMPORAL">Temporal</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-empresa">Empresa:</label>
+                    <select id="select-empresa" onchange="filtrarMapa()">
+                        <option value="TODAS">Todas</option>
+                        <option value="SEDAPAL">SEDAPAL</option>
+                        <option value="PLUZ">PLUZ</option>
+                        <option value="LDS">LDS</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-estado">Estado:</label>
+                    <select id="select-estado" onchange="filtrarMapa()">
+                        <option value="TODOS">Todos</option>
+                        <option value="ACTIVO">Activo</option>
+                        <option value="EN PROCESO DE BAJA">En Proceso</option>
+                        <option value="DE BAJA">De Baja</option>
+                        <option value="SIN REGISTRO">Sin Reg.</option>
+                    </select>
+                </div>
+                <div class="filtro-grupo">
+                    <label>&nbsp;</label>
+                    <button id="btn-limpiar" onclick="limpiarFiltros(); toggleFiltrosMovil();">Limpiar</button>
+                </div>
+            </div>
+
+            <div id="panel-leyenda-estados">
+                <span class="leyenda-titulo-est">ESTADOS</span>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #043B0F;"></span> Activo</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #913A14;"></span> En Proceso</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #BF1D4B;"></span> De Baja</div>
+                <div class="leyenda-fila"><span class="leyenda-punto" style="background-color: #2D2836;"></span> Sin Reg.</div>
+            </div>
+
+            <div id="marca-agua-mapa">Diseñado por Vladimir Casas</div>
+            <div id="map"></div>
+        </div>
+
+        <!-- SECCIÓN DERECHA: TABLAS GERENCIALES -->
+        <div id="seccion-tablas">
+            <!-- Tabla Superior: Agua -->
+            <div class="tabla-panel tabla-agua">
+                <div class="tabla-header">
+                    <span>💧 SUMINISTROS DE AGUA (SEDAPAL)</span>
+                    <button class="btn-reporte-excel" onclick="exportarExcel('AGUA')">📊 Reporte</button>
+                </div>
+                <div class="table-container">
+                    <table id="tabla-agua-content">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servicio</th>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabla Inferior: Luz -->
+            <div class="tabla-panel tabla-luz">
+                <div class="tabla-header">
+                    <span>⚡ SUMINISTROS DE ELECTRICIDAD (PLUZ / LDS)</span>
+                    <button class="btn-reporte-excel" onclick="exportarExcel('LUZ')">📊 Reporte</button>
+                </div>
+                <div class="table-container">
+                    <table id="tabla-luz-content">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servicio</th>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script auxiliar para desplegar/cerrar filtros en móvil -->
+    <script>
+        function toggleFiltrosMovil() {
+            const panel = document.getElementById('panel-filtros');
+            panel.classList.toggle('activo');
+        }
+    </script>
+
+    <!-- Librerías JS y Script Principal -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>
