@@ -30,10 +30,10 @@ let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
 let usuarioActualGlobal = null;
 
-// Control de flujo al cargar la página
+// Control de flujo inicial al cargar la página (Independiente y seguro)
 document.addEventListener("DOMContentLoaded", () => {
     inicializarMapaBase();
-    cargarDatosDesdeHojas();
+    cargarDatosDesdeHojas(); // Carga garantizada de Google Sheets y Leaflet
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -83,14 +83,13 @@ function ocultarModalLogin() {
     if (modal) modal.style.display = 'none';
 }
 
-// Validación de Permisos y Verificación de Disclaimer en Firestore con resguardo para admins
+// Validación de Permisos y Verificación de Disclaimer en Firestore con resguardo para administradores
 async function validarPermisosYDisclaimer(user) {
     const emailUser = user.email.toLowerCase().trim();
 
-    // Resguardo absoluto para superadministradores
+    // Resguardo absoluto inmediato para superadministradores
     if (emailUser === "zebaxx@gmail.com" || emailUser === "vcasasp@ccmetrolima.com") {
-        console.info(`Acceso de superadministrador concedido para: ${emailUser}`);
-        verificarDisclaimerUsuario(emailUser);
+        verificarDisclaimerUsuario();
         return;
     }
 
@@ -106,21 +105,25 @@ async function validarPermisosYDisclaimer(user) {
             let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
-                verificarDisclaimerUsuario(emailUser);
+                verificarDisclaimerUsuario();
             } else {
                 restringirAccesoNoAutorizado();
             }
         } else {
-            console.warn(`El usuario ${emailUser} no se encontró en la colección 'usuarios'.`);
             restringirAccesoNoAutorizado();
         }
     } catch (error) {
         console.error("Error al validar contra Firestore:", error);
-        restringirAccesoNoAutorizado();
+        // Resguardo en caso de fallo de reglas para administradores
+        if (emailUser === "zebaxx@gmail.com" || emailUser === "vcasasp@ccmetrolima.com") {
+            verificarDisclaimerUsuario();
+        } else {
+            restringirAccesoNoAutorizado();
+        }
     }
 }
 
-function verificarDisclaimerUsuario(emailUser) {
+function verificarDisclaimerUsuario() {
     if (!localStorage.getItem(STORAGE_KEY_DISCLAIMER)) {
         mostrarDisclaimer();
     } else {
@@ -311,4 +314,283 @@ async function cargarDatosDesdeHojas() {
 
             for (let i = 1; i < filasLuz.length; i++) {
                 let cols = filasLuz[i];
-                if (
+                if (idxId === -1 || cols.length <= idxId) continue;
+                let id = cols[idxId] ? cols[idxId].trim().toUpperCase() : "";
+                if (!id) continue;
+
+                let tramo = (idxTramo !== -1 && cols[idxTramo]) ? cols[idxTramo].trim().toUpperCase() : "L2";
+                let sumNum = (idxSum !== -1 && cols[idxSum]) ? cols[idxSum].trim() : "-";
+                let empresa = (idxEmp !== -1 && cols[idxEmp]) ? cols[idxEmp].trim().toUpperCase() : "PLUZ";
+                let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim().toUpperCase() : "-";
+                let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim().toUpperCase() : "ACTIVO";
+                let docVal = (idxDoc !== -1 && cols[idxDoc]) ? cols[idxDoc].trim() : "-";
+
+                datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
+
+                let lat = idxLat !== -1 ? parsearNumeroLatLon(cols[idxLat]) : null;
+                let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
+
+                if (!mapaEstructuras[id]) {
+                    mapaEstructuras[id] = { id, tramo, lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
+                } else {
+                    if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
+                    if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
+                }
+
+                if (sumNum && sumNum !== "-") {
+                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal });
+                }
+            }
+        }
+
+        registrosSuministros = Object.values(mapaEstructuras).map(item => ({
+            id: item.id,
+            tramo: item.tramo,
+            lat: item.lat,
+            lng: item.lng,
+            aguaList: item.aguaList,
+            luzList: item.luzList
+        }));
+
+        cargarMapaYSuministros(registrosSuministros);
+
+    } catch (error) {
+        console.error("Error crítico al procesar las hojas:", error);
+    }
+}
+
+function ordenarListaTramo(a, b) {
+    let tramA = (a.tramo || "L2").toUpperCase();
+    let tramB = (b.tramo || "L2").toUpperCase();
+    if (tramA === "L4" && tramB !== "L4") return -1;
+    if (tramA !== "L4" && tramB === "L4") return 1;
+    return a.id.localeCompare(b.id);
+}
+
+function obtenerColorPin(aguaList, luzList) {
+    let todos = [...aguaList, ...luzList];
+    if (todos.length === 0) return "#2D2836";
+
+    let hayActivo = todos.some(x => x.estado.includes("ACTIVO"));
+    let hayEnProceso = todos.some(x => x.estado.includes("EN PROCESO"));
+    let hayDeBaja = todos.some(x => x.estado.includes("DE BAJA"));
+
+    if (hayActivo) return "#043B0F";
+    if (hayEnProceso) return "#913A14";
+    if (hayDeBaja) return "#BF1D4B";
+    return "#211433";
+}
+
+function renderizarTablas(listaEstructuras) {
+    let ordenados = [...listaEstructuras].sort(ordenarListaTramo);
+    let tbodyAgua = "";
+    let tbodyLuz = "";
+
+    ordenados.forEach(item => {
+        if (item.aguaList.length === 0) {
+            tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+            </tr>`;
+        } else {
+            item.aguaList.forEach(a => {
+                tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td>
+                </tr>`;
+            });
+        }
+
+        if (item.luzList.length === 0) {
+            tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+            </tr>`;
+        } else {
+            item.luzList.forEach(l => {
+                tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td>
+                </tr>`;
+            });
+        }
+    });
+
+    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
+    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
+}
+
+function centrarEnId(idBuscado) {
+    let markerObj = mapaRegistrosPorId[idBuscado];
+    if (markerObj) {
+        map.flyTo(markerObj.getLatLng(), 17, { animate: true, duration: 0.8 });
+        markerObj.openPopup();
+        resaltarFilaEnTablas(idBuscado);
+    }
+}
+
+function resaltarFilaEnTablas(idBuscado) {
+    limpiarSeleccionTablas();
+    const filasCoincidentes = document.querySelectorAll(`tr.fila-interactiva[data-id="${idBuscado}"]`);
+    filasCoincidentes.forEach(tr => {
+        tr.classList.add('fila-resaltada');
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+}
+
+function cargarMapaYSuministros(listaEstructuras) {
+    if (!map) inicializarMapaBase();
+    capaMarcadores.clearLayers();
+    todosLosMarcadores = [];
+    boundsGlobal = [];
+    mapaRegistrosPorId = {};
+
+    listaEstructuras.forEach(item => {
+        const colorPin = obtenerColorPin(item.aguaList, item.luzList);
+
+        const customIcon = L.divIcon({
+            className: 'pin-etiqueta-contenedor',
+            html: `
+                <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
+                <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${item.id}</div>
+            `,
+            iconSize: [80, 24],
+            iconAnchor: [7, 12]
+        });
+
+        let aguaHtml = item.aguaList.length > 0 ? item.aguaList.map(a => `
+            <div class="popup-item-block">
+                <div class="popup-line-primary">💧 <b>${a.suministro} (${a.empresa})</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${a.tipo}</b> - Estado: <b>${a.estado}</b></div>
+            </div>
+        `).join("") : "Sin registro de agua";
+
+        let luzHtml = item.luzList.length > 0 ? item.luzList.map(l => `
+            <div class="popup-item-block">
+                <div class="popup-line-primary">⚡ <b>${l.suministro} (${l.empresa})</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${l.tipo}</b> - Estado: <b>${l.estado}</b></div>
+            </div>
+        `).join("") : "Sin registro de luz";
+
+        const popupContent = `
+            <div style="font-family: 'Inter', sans-serif; width: 250px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
+                <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 5px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
+                <div style="background: #eaf2f8; padding: 5px 6px; border-radius: 4px; margin-bottom: 4px;">
+                    <div style="font-weight: 700; font-size: 9px; color: #1e3a4c; margin-bottom: 2px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
+                    ${aguaHtml}
+                </div>
+                <div style="background: #fef9e7; padding: 5px 6px; border-radius: 4px;">
+                    <div style="font-weight: 700; font-size: 9px; color: #78350f; margin-bottom: 2px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
+                    ${luzHtml}
+                </div>
+            </div>
+        `;
+
+        const marker = L.marker([item.lat, item.lng], { icon: customIcon });
+        marker.bindPopup(popupContent);
+        
+        marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            resaltarFilaEnTablas(item.id);
+        });
+
+        marker.itemData = item;
+
+        todosLosMarcadores.push(marker);
+        mapaRegistrosPorId[item.id] = marker;
+        capaMarcadores.addLayer(marker);
+        boundsGlobal.push([item.lat, item.lng]);
+    });
+
+    renderizarTablas(listaEstructuras);
+
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [40, 40], maxZoom: 14, animate: false });
+    }
+}
+
+window.filtrarMapa = function() {
+    const textoBusqueda = document.getElementById('input-buscar').value.toLowerCase().trim();
+    const tipoFiltro = document.getElementById('select-tipo').value;
+    const empresaFiltro = document.getElementById('select-empresa').value;
+    const estadoFiltro = document.getElementById('select-estado').value;
+
+    let filtrados = registrosSuministros.filter(item => {
+        let matchTexto = (textoBusqueda === "" || item.id.toLowerCase().includes(textoBusqueda) || 
+            item.aguaList.some(a => a.suministro.toLowerCase().includes(textoBusqueda)) || 
+            item.luzList.some(l => l.suministro.toLowerCase().includes(textoBusqueda)));
+
+        let todosServicios = [...item.aguaList, ...item.luzList];
+
+        let matchTipo = (tipoFiltro === "TODOS" || todosServicios.some(s => s.tipo.includes(tipoFiltro)));
+        let matchEmpresa = (empresaFiltro === "TODAS" || todosServicios.some(s => s.empresa.includes(empresaFiltro)));
+        let matchEstado = (estadoFiltro === "TODOS" || todosServicios.some(s => s.estado.includes(estadoFiltro)));
+
+        return matchTexto && matchTipo && matchEmpresa && matchEstado;
+    });
+
+    capaMarcadores.clearLayers();
+    let marcadoresVisibles = [];
+
+    todosLosMarcadores.forEach(marker => {
+        if (filtrados.some(f => f.id === marker.itemData.id)) {
+            capaMarcadores.addLayer(marker);
+            marcadoresVisibles.push(marker);
+        }
+    });
+
+    renderizarTablas(filtrados);
+
+    if (marcadoresVisibles.length > 0) {
+        if (marcadoresVisibles.length === 1) {
+            map.flyTo(marcadoresVisibles[0].getLatLng(), 17, { animate: true, duration: 0.8 });
+            marcadoresVisibles[0].openPopup();
+            resaltarFilaEnTablas(marcadoresVisibles[0].itemData.id);
+        } else {
+            let grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
+            if (grupoBounds.isValid()) {
+                map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16, animate: true });
+            }
+        }
+    }
+}
+
+window.limpiarFiltros = function() {
+    document.getElementById('input-buscar').value = "";
+    document.getElementById('select-tipo').value = "TODOS";
+    document.getElementById('select-empresa').value = "TODAS";
+    document.getElementById('select-estado').value = "TODOS";
+
+    cargarMapaYSuministros(registrosSuministros);
+    limpiarSeleccionTablas();
+    if (boundsGlobal.length > 0) {
+        map.fitBounds(boundsGlobal, { padding: [40, 40], maxZoom: 14, animate: true });
+    }
+}
+
+window.exportarExcel = function(tipoServicio) {
+    let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
+    let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
+    let datosOrdenados = [...datosOriginales].sort((a,b) => a.id.localeCompare(b.id));
+
+    let ahora = new Date();
+    let fechaStr = ahora.toLocaleDateString('es-PE');
+    let horaStr = ahora.toLocaleTimeString('es-PE');
+    let timestampStr = `Fecha y Hora del Reporte: ${fechaStr} - ${horaStr}`;
+
+    let wsData = [
+        [tituloReporte],
+        [timestampStr],
+        [],
+        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO"]
+    ];
+
+    datosOrdenados.forEach(item => {
+        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
+    });
+
+    let wb = XLSX.utils.book_new();
+    let ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [{wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 15}, {wch: 25}];
+
+    XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
+    XLSX.writeFile(wb, tipoServicio === 'AGUA' ? "Reporte_Suministros_Agua_CCM2L.xlsx" : "Reporte_Suministros_Electricidad_CCM2L.xlsx");
+}
+
+window.centrarEnId = centrarEnId;
