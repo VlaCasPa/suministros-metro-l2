@@ -8,12 +8,12 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg", // Credenciales de su proyecto MetroL2-IAM-Central
+    apiKey: "AIzaSyC1XakVAZLUDq3-240Q_KoYYPU5JKCTjzs",
     authDomain: "metrol2-iam-central.firebaseapp.com",
     projectId: "metrol2-iam-central",
-    storageBucket: "metrol2-iam-central.appspot.com",
+    storageBucket: "metrol2-iam-central.firebasestorage.app",
     messagingSenderId: "78845391762",
-    appId: "1:78845391762:web:su_app_id_generado" // Asegúrese de colocar el App ID exacto de su app web en Firebase
+    appId: "1:78845391762:web:d64611cd7c4ef65a24074b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -634,7 +634,7 @@ function limpiarFiltros() {
     }
 }
 
-function exportarExcel(tipoServicio) {
+exportarExcel(tipoServicio) {
     let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
     let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
     let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
