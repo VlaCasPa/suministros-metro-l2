@@ -626,11 +626,12 @@ function filtrarMapa() {
 
     cargarTablas(registrosFiltradosTablas);
 
-    if (textoBusqueda.length > 0 && marcadoresVisibles.length > 0) {
+    if (marcadoresVisibles.length > 0) {
         if (marcadoresVisibles.length === 1) {
             const unicoMarker = marcadoresVisibles[0];
             map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
             unicoMarker.openPopup();
+            resaltarFilaEnTablas(unicoMarker.itemData.id);
         } else {
             const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
             if (grupoBounds.isValid()) {
