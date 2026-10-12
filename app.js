@@ -47,25 +47,24 @@ document.addEventListener("DOMContentLoaded", () => {
 async function validarPermisosUsuario(user) {
     const emailUser = user.email.toLowerCase();
     
-    // Definición de administradores absolutos globales
+    // Administradores absolutos globales con control total y escritura
     const administradoresGlobales = ["zebaxx@gmail.com", "vcasasp@ccmetrolima.com"];
     const esAdminAbsoluto = administradoresGlobales.includes(emailUser);
     
-    // Validación de dominio corporativo o cuentas específicas de consulta
+    // Usuarios de consulta bajo dominio corporativo oficial
     const esDominioCorporativo = emailUser.endsWith("@ccmetrolima.com");
 
     if (esAdminAbsoluto || esDominioCorporativo) {
         console.log(`Acceso autorizado para ${emailUser} en módulo: ${REPO_ACTUAL}`);
         ocultarBotonAutenticacion();
         
-        // Si no es admin absoluto, aplicar modo solo lectura por defecto para cuentas de dominio
         if (!esAdminAbsoluto) {
             aplicarModoSoloLectura();
         }
         return;
     }
 
-    // Validación secundaria contra Cloud Firestore para correos externos específicos (ej. tnoriega.arq@gmail.com, etc.)
+    // Validación contra Cloud Firestore para correos externos específicos (ej. permisosccm2l@gmail.com, tnoriega.arq@gmail.com)
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
@@ -83,16 +82,26 @@ async function validarPermisosUsuario(user) {
                     aplicarModoSoloLectura();
                 }
             } else {
-                alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo operativo.`);
-                await signOut(auth);
+                restringirAccesoNoAutorizado();
             }
         } else {
-            alert(`Acceso denegado: El correo ${emailUser} no se encuentra registrado en la matriz de control corporativa.`);
-            await signOut(auth);
+            restringirAccesoNoAutorizado();
         }
     } catch (error) {
         console.error("Error al validar autorizaciones en Firestore:", error);
+        restringirAccesoNoAutorizado();
     }
+}
+
+// Función centralizada para bloquear y notificar a usuarios sin privilegios
+async function restringirAccesoNoAutorizado() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) modal.style.display = 'none';
+
+    alert("No puede ingresar consultar con el administrador y diseñador de la micro app");
+
+    await signOut(auth);
+    window.location.href = "https://github.com";
 }
 
 function mostrarBotonAutenticacion() {
@@ -100,7 +109,6 @@ function mostrarBotonAutenticacion() {
     if (!contenedorLogin) {
         contenedorLogin = document.createElement("div");
         contenedorLogin.id = "panel-login-flotante";
-        // Ubicado en la esquina superior izquierda, justo debajo de los controles de zoom del mapa
         contenedorLogin.style.cssText = "position:absolute; top:85px; left:15px; z-index:999; background:rgba(15, 23, 42, 0.95); padding:6px 10px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:8px;";
         contenedorLogin.innerHTML = `
             <span style="font-size:10px; color:#f8fafc; font-weight:600;">Acceso:</span>
