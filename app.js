@@ -119,7 +119,6 @@ function inicializarMapaBase() {
 
     capaMarcadores = L.layerGroup().addTo(map);
 
-    // Limpiar selección al hacer clic en el mapa vacío
     map.on('click', () => {
         limpiarSeleccionTablas();
     });
@@ -303,7 +302,7 @@ function ordenarListaTramo(a, b) {
 
 function obtenerColorPin(aguaList, luzList) {
     let todos = [...aguaList, ...luzList];
-    if (todos.length === 0) return "#2D2836"; // Sin registro
+    if (todos.length === 0) return "#2D2836";
 
     let hayActivo = todos.some(x => x.estado.includes("ACTIVO"));
     let hayEnProceso = todos.some(x => x.estado.includes("EN PROCESO"));
@@ -548,5 +547,4 @@ window.aceptarDisclaimer = function() {
     }
 }
 
-// Exponer funciones globales necesarias para onclick en HTML
 window.centrarEnId = centrarEnId;
