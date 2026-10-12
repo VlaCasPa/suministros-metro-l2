@@ -52,16 +52,13 @@ async function validarPermisosUsuario(user) {
 
         if (docSnap.exists()) {
             const datosUsuario = docSnap.data();
-            const reposPermitidos = datosUsuario.repositorios_permitidos || [];
+            // Sincronizado con el campo 'permisos_escritura' de su Firestore
+            const reposPermitidos = datosUsuario.permisos_escritura || [];
             const esAdmin = datosUsuario.es_admin || false;
-            const puedeEscribir = datosUsuario.permisos_escritura || false;
 
             if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
                 console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
-                if (!esAdmin && !puedeEscribir) {
-                    aplicarModoSoloLectura();
-                }
             } else {
                 alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
                 await signOut(auth);
@@ -80,21 +77,23 @@ function mostrarBotonAutenticacion() {
     if (!contenedorLogin) {
         contenedorLogin = document.createElement("div");
         contenedorLogin.id = "panel-login-flotante";
-        contenedorLogin.style.cssText = "position:fixed; top:15px; right:360px; z-index:9999; background:#1e293b; padding:6px 12px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:flex; align-items:center; gap:8px;";
+        // REUBICADO: Esquina superior izquierda, debajo de los botones de zoom del mapa
+        contenedorLogin.style.cssText = "position:absolute; top:85px; left:15px; z-index:999; background:rgba(15, 23, 42, 0.95); padding:6px 10px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:8px;";
         contenedorLogin.innerHTML = `
-            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Control Admin:</span>
-            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">
+            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Admin:</span>
+            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">
                 🔑 Login Google
             </button>
         `;
-        document.body.appendChild(contenedorLogin);
+        // Se adjunta dentro de la sección del mapa para respetar la jerarquía visual
+        document.getElementById("seccion-mapa").appendChild(contenedorLogin);
 
         document.getElementById("btn-google-login").onclick = async () => {
             try {
                 await signInWithPopup(auth, provider);
             } catch (err) {
                 console.error("Error al autenticar con Google:", err);
-                alert("Asegúrese de haber agregado 'vlacaspa.github.io' en los dominios autorizados de su consola de Firebase.");
+                alert("Error de autenticación. Verifique su cuenta o conexión.");
             }
         };
     } else {
@@ -105,10 +104,6 @@ function mostrarBotonAutenticacion() {
 function ocultarBotonAutenticacion() {
     const contenedorLogin = document.getElementById("panel-login-flotante");
     if (contenedorLogin) contenedorLogin.style.display = "none";
-}
-
-function aplicarModoSoloLectura() {
-    console.info("Modo de seguridad: Visualización de solo lectura aplicada.");
 }
 
 // Inicialización del mapa Leaflet
