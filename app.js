@@ -1,19 +1,19 @@
-// URLs de exportación CSV publicadas desde Google Sheets
+// URLs de exportación CSV de suministros (Agua y Luz)
 const SHEET_AGUA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=0&single=true&output=csv';
 const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3UV0B_szCUCf2CBG0raycUkue7pBVYl3WRqkHYJ7R1UF_M2_wLR57JhzH9uvfMqFRQlqN6P/pub?gid=1407636453&single=true&output=csv';
 
-// --- CONFIGURACIÓN DE FIREBASE Y CONTROL DE ACCESO ---
+// --- CONFIGURACIÓN DE FIREBASE (PROYECTO CENTRAL: MetroL2-IAM-Central) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg",
-    authDomain: "cerramientos-l2l4-b157e.firebaseapp.com",
-    projectId: "cerramientos-l2l4-b157e",
-    storageBucket: "cerramientos-l2l4-b157e.appspot.com",
-    messagingSenderId: "21699345602",
-    appId: "1:21699345602:web:f715c1203b7516f0cccf5b"
+    apiKey: "AIzaSyAalo8_88axc-5QAGT8Winp72A1utZwzZg", // Credenciales de su proyecto MetroL2-IAM-Central
+    authDomain: "metrol2-iam-central.firebaseapp.com",
+    projectId: "metrol2-iam-central",
+    storageBucket: "metrol2-iam-central.appspot.com",
+    messagingSenderId: "78845391762",
+    appId: "1:78845391762:web:su_app_id_generado" // Asegúrese de colocar el App ID exacto de su app web en Firebase
 };
 
 const app = initializeApp(firebaseConfig);
@@ -34,42 +34,39 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarMapaBase();
     cargarDatosDesdeHojas();
 
-    // Validar sesión en segundo plano sin bloquear la interfaz
+    // Validar sesión en segundo plano consultando Cloud Firestore de manera segura
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            await validarPermisosUsuario(user);
+            await validarPermisosDesdeFirestore(user);
         } else {
             mostrarBotonAutenticacion();
         }
     });
 });
 
-async function validarPermisosUsuario(user) {
-    const emailUser = user.email.toLowerCase();
-    
-    // 1. Administradores absolutos globales (control total en todos los repositorios)
-    const administradoresGlobales = ["zebaxx@gmail.com", "vcasasp@ccmetrolima.com"];
-    if (administradoresGlobales.includes(emailUser)) {
-        console.log(`Acceso Administrador Global autorizado para ${emailUser}`);
-        ocultarBotonAutenticacion();
-        return;
-    }
+// Función de validación estricta contra Cloud Firestore (Colección "usuarios")
+async function validarPermisosDesdeFirestore(user) {
+    const emailUser = user.email.toLowerCase().trim();
 
-    // 2. Validación estricta contra Cloud Firestore por lista blanca específica del repositorio
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const datosUsuario = docSnap.data();
-            // Verificamos si el repositorio actual está incluido en sus permisos o si es admin general en Firestore
-            const reposPermitidos = datosUsuario.permisos_escritura || datosUsuario.repositorios_permitidos || [];
-            const esAdminFirestore = datosUsuario.es_admin || false;
+            const esAdmin = datosUsuario.es_admin || false;
+            const reposPermitidos = datosUsuario.repositorios_permitidos || [];
 
-            if (esAdminFirestore || reposPermitidos.includes(REPO_ACTUAL)) {
-                console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
+            let usuarioAutorizado = false;
+
+            if (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL)) {
+                usuarioAutorizado = true;
+            }
+
+            if (usuarioAutorizado) {
+                console.log(`Acceso autorizado para ${emailUser} en módulo: ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
-                if (!esAdminFirestore) {
+                if (!esAdmin) {
                     aplicarModoSoloLectura();
                 }
             } else {
@@ -78,13 +75,14 @@ async function validarPermisosUsuario(user) {
         } else {
             restringirAccesoNoAutorizado();
         }
+
     } catch (error) {
-        console.error("Error al validar autorizaciones en Firestore:", error);
+        console.error("Error al consultar la base de datos de IAM:", error);
         restringirAccesoNoAutorizado();
     }
 }
 
-// Función centralizada para bloquear y notificar a usuarios sin privilegios específicos
+// Función centralizada para bloquear y notificar a usuarios sin privilegios
 async function restringirAccesoNoAutorizado() {
     const modal = document.getElementById('disclaimer-modal');
     if (modal) modal.style.display = 'none';
