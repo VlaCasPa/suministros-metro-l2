@@ -634,7 +634,7 @@ function limpiarFiltros() {
     }
 }
 
-exportarExcel(tipoServicio) {
+function exportarExcel(tipoServicio) {
     let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
     let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
     let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
