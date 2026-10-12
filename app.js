@@ -47,38 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
 async function validarPermisosUsuario(user) {
     const emailUser = user.email.toLowerCase();
     
-    // Administradores absolutos globales con control total y escritura
+    // 1. Administradores absolutos globales (control total en todos los repositorios)
     const administradoresGlobales = ["zebaxx@gmail.com", "vcasasp@ccmetrolima.com"];
-    const esAdminAbsoluto = administradoresGlobales.includes(emailUser);
-    
-    // Usuarios de consulta bajo dominio corporativo oficial
-    const esDominioCorporativo = emailUser.endsWith("@ccmetrolima.com");
-
-    if (esAdminAbsoluto || esDominioCorporativo) {
-        console.log(`Acceso autorizado para ${emailUser} en módulo: ${REPO_ACTUAL}`);
+    if (administradoresGlobales.includes(emailUser)) {
+        console.log(`Acceso Administrador Global autorizado para ${emailUser}`);
         ocultarBotonAutenticacion();
-        
-        if (!esAdminAbsoluto) {
-            aplicarModoSoloLectura();
-        }
         return;
     }
 
-    // Validación contra Cloud Firestore para correos externos específicos (ej. permisosccm2l@gmail.com, tnoriega.arq@gmail.com)
+    // 2. Validación estricta contra Cloud Firestore por lista blanca específica del repositorio
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const datosUsuario = docSnap.data();
-            const reposPermitidos = datosUsuario.permisos_escritura || [];
+            // Verificamos si el repositorio actual está incluido en sus permisos o si es admin general en Firestore
+            const reposPermitidos = datosUsuario.permisos_escritura || datosUsuario.repositorios_permitidos || [];
             const esAdminFirestore = datosUsuario.es_admin || false;
-            const puedeEscribir = datosUsuario.permisos_escritura || false;
 
             if (esAdminFirestore || reposPermitidos.includes(REPO_ACTUAL)) {
-                console.log(`Acceso autorizado vía Firestore para ${emailUser}`);
+                console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
-                if (!esAdminFirestore && !puedeEscribir) {
+                if (!esAdminFirestore) {
                     aplicarModoSoloLectura();
                 }
             } else {
@@ -93,7 +84,7 @@ async function validarPermisosUsuario(user) {
     }
 }
 
-// Función centralizada para bloquear y notificar a usuarios sin privilegios
+// Función centralizada para bloquear y notificar a usuarios sin privilegios específicos
 async function restringirAccesoNoAutorizado() {
     const modal = document.getElementById('disclaimer-modal');
     if (modal) modal.style.display = 'none';
