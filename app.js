@@ -28,7 +28,7 @@ let datosBrutosAgua = [];
 let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
 
-// Carga inmediata de la aplicación para evitar pantallas congeladas
+// Control de flujo al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
     verificarDisclaimer();
     inicializarMapaBase();
@@ -45,26 +45,49 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function validarPermisosUsuario(user) {
-    const emailUser = user.email;
+    const emailUser = user.email.toLowerCase();
+    
+    // Definición de administradores absolutos globales
+    const administradoresGlobales = ["zebaxx@gmail.com", "vcasasp@ccmetrolima.com"];
+    const esAdminAbsoluto = administradoresGlobales.includes(emailUser);
+    
+    // Validación de dominio corporativo o cuentas específicas de consulta
+    const esDominioCorporativo = emailUser.endsWith("@ccmetrolima.com");
+
+    if (esAdminAbsoluto || esDominioCorporativo) {
+        console.log(`Acceso autorizado para ${emailUser} en módulo: ${REPO_ACTUAL}`);
+        ocultarBotonAutenticacion();
+        
+        // Si no es admin absoluto, aplicar modo solo lectura por defecto para cuentas de dominio
+        if (!esAdminAbsoluto) {
+            aplicarModoSoloLectura();
+        }
+        return;
+    }
+
+    // Validación secundaria contra Cloud Firestore para correos externos específicos (ej. tnoriega.arq@gmail.com, etc.)
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const datosUsuario = docSnap.data();
-            // Sincronizado con el campo 'permisos_escritura' de su Firestore
             const reposPermitidos = datosUsuario.permisos_escritura || [];
-            const esAdmin = datosUsuario.es_admin || false;
+            const esAdminFirestore = datosUsuario.es_admin || false;
+            const puedeEscribir = datosUsuario.permisos_escritura || false;
 
-            if (esAdmin || reposPermitidos.includes(REPO_ACTUAL)) {
-                console.log(`Acceso autorizado para ${emailUser} en ${REPO_ACTUAL}`);
+            if (esAdminFirestore || reposPermitidos.includes(REPO_ACTUAL)) {
+                console.log(`Acceso autorizado vía Firestore para ${emailUser}`);
                 ocultarBotonAutenticacion();
+                if (!esAdminFirestore && !puedeEscribir) {
+                    aplicarModoSoloLectura();
+                }
             } else {
-                alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo.`);
+                alert(`Acceso denegado: El correo ${emailUser} no cuenta con privilegios para este módulo operativo.`);
                 await signOut(auth);
             }
         } else {
-            alert(`El correo ${emailUser} no está registrado en la base de datos de control de accesos.`);
+            alert(`Acceso denegado: El correo ${emailUser} no se encuentra registrado en la matriz de control corporativa.`);
             await signOut(auth);
         }
     } catch (error) {
@@ -77,23 +100,22 @@ function mostrarBotonAutenticacion() {
     if (!contenedorLogin) {
         contenedorLogin = document.createElement("div");
         contenedorLogin.id = "panel-login-flotante";
-        // REUBICADO: Esquina superior izquierda, debajo de los botones de zoom del mapa
+        // Ubicado en la esquina superior izquierda, justo debajo de los controles de zoom del mapa
         contenedorLogin.style.cssText = "position:absolute; top:85px; left:15px; z-index:999; background:rgba(15, 23, 42, 0.95); padding:6px 10px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:8px;";
         contenedorLogin.innerHTML = `
-            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Admin:</span>
+            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Acceso:</span>
             <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">
                 🔑 Login Google
             </button>
         `;
-        // Se adjunta dentro de la sección del mapa para respetar la jerarquía visual
         document.getElementById("seccion-mapa").appendChild(contenedorLogin);
 
         document.getElementById("btn-google-login").onclick = async () => {
             try {
                 await signInWithPopup(auth, provider);
             } catch (err) {
-                console.error("Error al autenticar con Google:", err);
-                alert("Error de autenticación. Verifique su cuenta o conexión.");
+                console.error("Error en la autenticación con Google:", err);
+                alert("No se pudo completar el inicio de sesión. Verifique los permisos del navegador.");
             }
         };
     } else {
@@ -104,6 +126,10 @@ function mostrarBotonAutenticacion() {
 function ocultarBotonAutenticacion() {
     const contenedorLogin = document.getElementById("panel-login-flotante");
     if (contenedorLogin) contenedorLogin.style.display = "none";
+}
+
+function aplicarModoSoloLectura() {
+    console.info("Modo de seguridad activado: Visualización de solo lectura.");
 }
 
 // Inicialización del mapa Leaflet
