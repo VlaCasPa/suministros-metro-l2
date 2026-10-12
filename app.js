@@ -34,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
     inicializarMapaBase();
     cargarDatosDesdeHojas();
 
-    // Validar sesión en segundo plano consultando Cloud Firestore de manera segura
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             await validarPermisosDesdeFirestore(user);
@@ -44,10 +43,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Función de validación estricta contra Cloud Firestore (Colección "usuarios")
 async function validarPermisosDesdeFirestore(user) {
     const emailUser = user.email.toLowerCase().trim();
-
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
@@ -57,38 +54,26 @@ async function validarPermisosDesdeFirestore(user) {
             const esAdmin = datosUsuario.es_admin || false;
             const reposPermitidos = datosUsuario.repositorios_permitidos || [];
 
-            let usuarioAutorizado = false;
-
-            if (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL)) {
-                usuarioAutorizado = true;
-            }
+            let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
-                console.log(`Acceso autorizado para ${emailUser} en módulo: ${REPO_ACTUAL}`);
                 ocultarBotonAutenticacion();
-                if (!esAdmin) {
-                    aplicarModoSoloLectura();
-                }
+                if (!esAdmin) aplicarModoSoloLectura();
             } else {
                 restringirAccesoNoAutorizado();
             }
         } else {
             restringirAccesoNoAutorizado();
         }
-
     } catch (error) {
-        console.error("Error al consultar la base de datos de IAM:", error);
         restringirAccesoNoAutorizado();
     }
 }
 
-// Función centralizada para bloquear y notificar a usuarios sin privilegios
 async function restringirAccesoNoAutorizado() {
     const modal = document.getElementById('disclaimer-modal');
     if (modal) modal.style.display = 'none';
-
     alert("No puede ingresar consultar con el administrador y diseñador de la micro app");
-
     await signOut(auth);
     window.location.href = "https://github.com";
 }
@@ -101,19 +86,11 @@ function mostrarBotonAutenticacion() {
         contenedorLogin.style.cssText = "position:absolute; top:85px; left:15px; z-index:999; background:rgba(15, 23, 42, 0.95); padding:6px 10px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:8px;";
         contenedorLogin.innerHTML = `
             <span style="font-size:10px; color:#f8fafc; font-weight:600;">Acceso:</span>
-            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">
-                🔑 Login Google
-            </button>
+            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">🔑 Login Google</button>
         `;
         document.getElementById("seccion-mapa").appendChild(contenedorLogin);
-
         document.getElementById("btn-google-login").onclick = async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (err) {
-                console.error("Error en la autenticación con Google:", err);
-                alert("No se pudo completar el inicio de sesión. Verifique los permisos del navegador.");
-            }
+            await signInWithPopup(auth, provider);
         };
     } else {
         contenedorLogin.style.display = "flex";
@@ -129,7 +106,6 @@ function aplicarModoSoloLectura() {
     console.info("Modo de seguridad activado: Visualización de solo lectura.");
 }
 
-// Inicialización del mapa Leaflet
 function inicializarMapaBase() {
     if (map) return;
     map = L.map('map', { zoomControl: false }).setView([-12.0464, -77.0428], 13);
@@ -143,7 +119,7 @@ function inicializarMapaBase() {
 
     capaMarcadores = L.layerGroup().addTo(map);
 
-    // Evento global: Si se hace clic en el fondo libre del mapa, se limpia la selección en las tablas
+    // Limpiar selección al hacer clic en el mapa vacío
     map.on('click', () => {
         limpiarSeleccionTablas();
     });
@@ -155,12 +131,10 @@ function limpiarSeleccionTablas() {
     });
 }
 
-// Parseador CSV robusto
 function parseCSV(text) {
     let lines = [];
     let row = [""];
     let inQuotes = false;
-    
     for (let i = 0; i < text.length; i++) {
         let c = text[i], next = text[i+1];
         if (c === '"') {
@@ -195,7 +169,6 @@ function buscarIndice(headers, posiblesNombres) {
     return -1;
 }
 
-// Carga y procesamiento de datos desde Google Sheets con manejo de errores aislado
 async function cargarDatosDesdeHojas() {
     try {
         let csvAguaText = "";
@@ -204,16 +177,12 @@ async function cargarDatosDesdeHojas() {
         try {
             const respAgua = await fetch(SHEET_AGUA_URL);
             csvAguaText = await respAgua.text();
-        } catch (e) {
-            console.warn("No se pudo obtener la hoja de agua:", e);
-        }
+        } catch (e) {}
 
         try {
             const respLuz = await fetch(SHEET_LUZ_URL);
             csvLuzText = await respLuz.text();
-        } catch (e) {
-            console.warn("No se pudo obtener la hoja de luz:", e);
-        }
+        } catch (e) {}
 
         const filasAgua = parseCSV(csvAguaText);
         const filasLuz = parseCSV(csvLuzText);
@@ -241,15 +210,13 @@ async function cargarDatosDesdeHojas() {
                 if (!id) continue;
 
                 let tramo = (idxTramo !== -1 && cols[idxTramo]) ? cols[idxTramo].trim().toUpperCase() : "L2";
-                let sumNum = (idxSum !== -1 && cols[idxSum]) ? cols[idxSum].trim() : "";
-                let empresa = (idxEmp !== -1 && cols[idxEmp]) ? cols[idxEmp].trim() : "SEDAPAL";
-                let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim() : "-";
-                let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim() : "ACTIVO";
+                let sumNum = (idxSum !== -1 && cols[idxSum]) ? cols[idxSum].trim() : "-";
+                let empresa = (idxEmp !== -1 && cols[idxEmp]) ? cols[idxEmp].trim().toUpperCase() : "SEDAPAL";
+                let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim().toUpperCase() : "-";
+                let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim().toUpperCase() : "ACTIVO";
                 let docVal = (idxDoc !== -1 && cols[idxDoc]) ? cols[idxDoc].trim() : "-";
 
-                if (sumNum) {
-                    datosBrutosAgua.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
-                }
+                datosBrutosAgua.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
 
                 let lat = idxLat !== -1 ? parsearNumeroLatLon(cols[idxLat]) : null;
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
@@ -261,13 +228,8 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                if (sumNum) {
-                    mapaEstructuras[id].aguaList.push(`
-                        <div class="popup-item-block">
-                            <div class="popup-line-primary">💧 <b>${sumNum}</b></div>
-                            <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
-                        </div>
-                    `);
+                if (sumNum && sumNum !== "-") {
+                    mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal });
                 }
             }
         }
@@ -291,15 +253,13 @@ async function cargarDatosDesdeHojas() {
                 if (!id) continue;
 
                 let tramo = (idxTramo !== -1 && cols[idxTramo]) ? cols[idxTramo].trim().toUpperCase() : "L2";
-                let sumNum = (idxSum !== -1 && cols[idxSum]) ? cols[idxSum].trim() : "";
-                let empresa = (idxEmp !== -1 && cols[idxEmp]) ? cols[idxEmp].trim() : "PLUZ";
-                let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim() : "-";
-                let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim() : "ACTIVO";
+                let sumNum = (idxSum !== -1 && cols[idxSum]) ? cols[idxSum].trim() : "-";
+                let empresa = (idxEmp !== -1 && cols[idxEmp]) ? cols[idxEmp].trim().toUpperCase() : "PLUZ";
+                let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim().toUpperCase() : "-";
+                let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim().toUpperCase() : "ACTIVO";
                 let docVal = (idxDoc !== -1 && cols[idxDoc]) ? cols[idxDoc].trim() : "-";
 
-                if (sumNum) {
-                    datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
-                }
+                datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
 
                 let lat = idxLat !== -1 ? parsearNumeroLatLon(cols[idxLat]) : null;
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
@@ -311,13 +271,8 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                if (sumNum) {
-                    mapaEstructuras[id].luzList.push(`
-                        <div class="popup-item-block">
-                            <div class="popup-line-primary">⚡ <b>${sumNum} (${empresa})</b></div>
-                            <div class="popup-line-secondary">Tipo: <b>${tipoVal}</b> - Estado: <b>${estado}</b></div>
-                        </div>
-                    `);
+                if (sumNum && sumNum !== "-") {
+                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal });
                 }
             }
         }
@@ -327,11 +282,11 @@ async function cargarDatosDesdeHojas() {
             tramo: item.tramo,
             lat: item.lat,
             lng: item.lng,
-            agua: item.aguaList.length > 0 ? item.aguaList.join("") : "Sin registro de agua",
-            luz: item.luzList.length > 0 ? item.luzList.join("") : "Sin registro de luz"
+            aguaList: item.aguaList,
+            luzList: item.luzList
         }));
 
-        cargarMapa("TODOS");
+        cargarMapaYSuministros(registrosSuministros);
 
     } catch (error) {
         console.error("Error crítico al procesar las hojas:", error);
@@ -346,83 +301,53 @@ function ordenarListaTramo(a, b) {
     return a.id.localeCompare(b.id);
 }
 
-function obtenerColorPin(textoTotal, estadoFiltroSelect) {
-    if (estadoFiltroSelect === "ACTIVO") return "#043B0F";
-    if (estadoFiltroSelect === "EN PROCESO DE BAJA") return "#913A14";
-    if (estadoFiltroSelect === "DE BAJA") return "#BF1D4B";
-    if (estadoFiltroSelect === "SIN REGISTRO") return "#2D2836";
+function obtenerColorPin(aguaList, luzList) {
+    let todos = [...aguaList, ...luzList];
+    if (todos.length === 0) return "#2D2836"; // Sin registro
 
-    if (textoTotal.includes("en proceso de baja")) return "#913A14";
-    if (textoTotal.includes("de baja")) return "#BF1D4B";
-    if (textoTotal.includes("activo")) return "#043B0F";
-    if (textoTotal.includes("sin registro")) return "#2D2836";
+    let hayActivo = todos.some(x => x.estado.includes("ACTIVO"));
+    let hayEnProceso = todos.some(x => x.estado.includes("EN PROCESO"));
+    let hayDeBaja = todos.some(x => x.estado.includes("DE BAJA"));
 
+    if (hayActivo) return "#043B0F";
+    if (hayEnProceso) return "#913A14";
+    if (hayDeBaja) return "#BF1D4B";
     return "#211433";
 }
 
-function parsearSuministrosATabla(idEstrucutra, textoSuministros) {
-    let filasHtml = "";
-    if (!textoSuministros || textoSuministros.includes("Sin registro")) {
-        return `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')">
-            <td><b>${idEstrucutra}</b></td>
-            <td>-</td>
-            <td>-</td>
-            <td class="col-tipo">-</td>
-            <td class="col-estado">SIN REGISTRO</td>
-        </tr>`;
-    }
-
-    let divisiones = textoSuministros.split('</div>\n                        </div>');
-    divisiones.forEach(div => {
-        if (!div.trim()) return;
-        let limpio = div.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-        if (limpio.length < 3) return;
-
-        let empresa = "SEDAPAL";
-        let upLimpio = limpio.toUpperCase();
-        if (upLimpio.includes("PLUZ")) empresa = "PLUZ ENERGÍA";
-        else if (upLimpio.includes("LDS")) empresa = "LDS";
-
-        let estado = "ACTIVO";
-        if (upLimpio.includes("EN PROCESO DE BAJA")) estado = "EN PROCESO DE BAJA";
-        else if (upLimpio.includes("DE BAJA")) estado = "DE BAJA";
-
-        let tipoVal = "-";
-        if (limpio.includes("Tipo:")) {
-            let partes = limpio.split("Tipo:");
-            if (partes[1]) {
-                tipoVal = partes[1].split("-")[0].trim();
-            }
-        }
-
-        let numSuministro = limpio.split("Tipo:")[0].replace("💧", "").replace("⚡", "").trim();
-        if (numSuministro.includes("(")) numSuministro = numSuministro.split("(")[0].trim();
-        if (!numSuministro) numSuministro = limpio;
-
-        filasHtml += `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')" onmouseenter="resaltarPin('${idEstrucutra}')">
-            <td><b>${idEstrucutra}</b></td>
-            <td>${numSuministro}</td>
-            <td>${empresa}</td>
-            <td class="col-tipo">${tipoVal}</td>
-            <td class="col-estado">${estado}</td>
-        </tr>`;
-    });
-
-    return filasHtml || `<tr class="fila-interactiva" data-id="${idEstrucutra}" onclick="centrarEnId('${idEstrucutra}')"><td><b>${idEstrucutra}</b></td><td>-</td><td>-</td><td class="col-tipo">-</td><td class="col-estado">SIN REGISTRO</td></tr>`;
-}
-
-function cargarTablas(registrosFiltrados) {
-    let ordenados = [...registrosFiltrados].sort(ordenarListaTramo);
+function renderizarTablas(listaEstructuras) {
+    let ordenados = [...listaEstructuras].sort(ordenarListaTramo);
     let tbodyAgua = "";
     let tbodyLuz = "";
 
     ordenados.forEach(item => {
-        tbodyAgua += parsearSuministrosATabla(item.id, item.agua);
-        tbodyLuz += parsearSuministrosATabla(item.id, item.luz);
+        if (item.aguaList.length === 0) {
+            tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+            </tr>`;
+        } else {
+            item.aguaList.forEach(a => {
+                tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td>
+                </tr>`;
+            });
+        }
+
+        if (item.luzList.length === 0) {
+            tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+            </tr>`;
+        } else {
+            item.luzList.forEach(l => {
+                tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
+                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td>
+                </tr>`;
+            });
+        }
     });
 
-    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua;
-    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz;
+    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
+    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
 }
 
 function centrarEnId(idBuscado) {
@@ -434,17 +359,8 @@ function centrarEnId(idBuscado) {
     }
 }
 
-function resaltarPin(idBuscado) {
-    let markerObj = mapaRegistrosPorId[idBuscado];
-    if (markerObj) {
-        markerObj.openPopup();
-        resaltarFilaEnTablas(idBuscado);
-    }
-}
-
 function resaltarFilaEnTablas(idBuscado) {
     limpiarSeleccionTablas();
-
     const filasCoincidentes = document.querySelectorAll(`tr.fila-interactiva[data-id="${idBuscado}"]`);
     filasCoincidentes.forEach(tr => {
         tr.classList.add('fila-resaltada');
@@ -452,16 +368,15 @@ function resaltarFilaEnTablas(idBuscado) {
     });
 }
 
-function cargarMapa(estadoFiltroSelect = "TODOS") {
+function cargarMapaYSuministros(listaEstructuras) {
     if (!map) inicializarMapaBase();
     capaMarcadores.clearLayers();
     todosLosMarcadores = [];
     boundsGlobal = [];
     mapaRegistrosPorId = {};
 
-    registrosSuministros.forEach(item => {
-        const contenidoTotal = `${item.id} ${item.tramo} ${item.agua} ${item.luz}`.toLowerCase();
-        const colorPin = obtenerColorPin(contenidoTotal, estadoFiltroSelect);
+    listaEstructuras.forEach(item => {
+        const colorPin = obtenerColorPin(item.aguaList, item.luzList);
 
         const customIcon = L.divIcon({
             className: 'pin-etiqueta-contenedor',
@@ -473,18 +388,30 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
             iconAnchor: [7, 12]
         });
 
+        let aguaHtml = item.aguaList.length > 0 ? item.aguaList.map(a => `
+            <div class="popup-item-block">
+                <div class="popup-line-primary">💧 <b>${a.suministro} (${a.empresa})</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${a.tipo}</b> - Estado: <b>${a.estado}</b></div>
+            </div>
+        `).join("") : "Sin registro de agua";
+
+        let luzHtml = item.luzList.length > 0 ? item.luzList.map(l => `
+            <div class="popup-item-block">
+                <div class="popup-line-primary">⚡ <b>${l.suministro} (${l.empresa})</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${l.tipo}</b> - Estado: <b>${l.estado}</b></div>
+            </div>
+        `).join("") : "Sin registro de luz";
+
         const popupContent = `
             <div style="font-family: 'Inter', sans-serif; width: 270px; max-width: 100%; font-size: 11px; color: #1e293b; box-sizing: border-box;">
                 <div style="font-weight: 700; font-size: 12px; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px;">ESTRUCTURA ID: ${item.id} (${item.tramo})</div>
-                
                 <div style="background: #eaf2f8; padding: 6px 8px; border-radius: 4px; margin-bottom: 5px;">
                     <div style="font-weight: 700; font-size: 9.5px; color: #1e3a4c; margin-bottom: 3px; text-transform: uppercase;">AGUA (SEDAPAL)</div>
-                    ${item.agua}
+                    ${aguaHtml}
                 </div>
-
                 <div style="background: #fef9e7; padding: 6px 8px; border-radius: 4px;">
                     <div style="font-weight: 700; font-size: 9.5px; color: #78350f; margin-bottom: 3px; text-transform: uppercase;">ELECTRICIDAD (LUZ)</div>
-                    ${item.luz}
+                    ${luzHtml}
                 </div>
             </div>
         `;
@@ -497,13 +424,7 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
             resaltarFilaEnTablas(item.id);
         });
 
-        marker.itemData = {
-            id: item.id,
-            tramo: item.tramo,
-            agua: item.agua,
-            luz: item.luz,
-            textoBusqueda: contenidoTotal
-        };
+        marker.itemData = item;
 
         todosLosMarcadores.push(marker);
         mapaRegistrosPorId[item.id] = marker;
@@ -511,68 +432,52 @@ function cargarMapa(estadoFiltroSelect = "TODOS") {
         boundsGlobal.push([item.lat, item.lng]);
     });
 
-    cargarTablas(registrosSuministros);
+    renderizarTablas(listaEstructuras);
 
     if (boundsGlobal.length > 0 && map.getBounds().isValid() === false) {
         map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15 });
     }
 }
 
-function filtrarMapa() {
+window.filtrarMapa = function() {
     const textoBusqueda = document.getElementById('input-buscar').value.toLowerCase().trim();
     const tipoFiltro = document.getElementById('select-tipo').value;
     const empresaFiltro = document.getElementById('select-empresa').value;
     const estadoFiltro = document.getElementById('select-estado').value;
 
+    let filtrados = registrosSuministros.filter(item => {
+        let matchTexto = (textoBusqueda === "" || item.id.toLowerCase().includes(textoBusqueda) || 
+            item.aguaList.some(a => a.suministro.toLowerCase().includes(textoBusqueda)) || 
+            item.luzList.some(l => l.suministro.toLowerCase().includes(textoBusqueda)));
+
+        let todosServicios = [...item.aguaList, ...item.luzList];
+
+        let matchTipo = (tipoFiltro === "TODOS" || todosServicios.some(s => s.tipo.includes(tipoFiltro)));
+        let matchEmpresa = (empresaFiltro === "TODAS" || todosServicios.some(s => s.empresa.includes(empresaFiltro)));
+        let matchEstado = (estadoFiltro === "TODOS" || todosServicios.some(s => s.estado.includes(estadoFiltro)));
+
+        return matchTexto && matchTipo && matchEmpresa && matchEstado;
+    });
+
     capaMarcadores.clearLayers();
     let marcadoresVisibles = [];
-    let registrosFiltradosTablas = [];
 
     todosLosMarcadores.forEach(marker => {
-        const data = marker.itemData;
-        const cumpleTexto = textoBusqueda === "" || data.textoBusqueda.includes(textoBusqueda);
-        let cumpleFiltros = true;
-
-        if (tipoFiltro === "AGUA" && !data.agua.toLowerCase().includes("suministro") && !data.agua.toLowerCase().includes("💧")) cumpleFiltros = false;
-        if (tipoFiltro === "LUZ" && !data.luz.toLowerCase().includes("suministro") && !data.luz.toLowerCase().includes("⚡")) cumpleFiltros = false;
-
-        if (empresaFiltro !== "TODAS") {
-            if (!data.textoBusqueda.includes(empresaFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (estadoFiltro !== "TODOS") {
-            if (!data.textoBusqueda.includes(estadoFiltro.toLowerCase())) cumpleFiltros = false;
-        }
-
-        if (cumpleTexto && cumpleFiltros) {
-            const colorPin = obtenerColorPin(data.textoBusqueda, estadoFiltro);
-            const customIcon = L.divIcon({
-                className: 'pin-etiqueta-contenedor',
-                html: `
-                    <div style="width: 14px; height: 14px; background-color: ${colorPin}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: inline-block;"></div>
-                    <div style="background: #FFFFFF; padding: 2px 6px; margin-left: 5px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: bold; color: #1E293B; box-shadow: 0 1px 3px rgba(0,0,0,0.3); display: inline-block; white-space: nowrap;">${data.id}</div>
-                `,
-                iconSize: [80, 24],
-                iconAnchor: [7, 12]
-            });
-            marker.setIcon(customIcon);
-
+        if (filtrados.some(f => f.id === marker.itemData.id)) {
             capaMarcadores.addLayer(marker);
             marcadoresVisibles.push(marker);
-            registrosFiltradosTablas.push({ id: data.id, tramo: data.tramo, agua: data.agua, luz: data.luz });
         }
     });
 
-    cargarTablas(registrosFiltradosTablas);
+    renderizarTablas(filtrados);
 
     if (marcadoresVisibles.length > 0) {
         if (marcadoresVisibles.length === 1) {
-            const unicoMarker = marcadoresVisibles[0];
-            map.flyTo(unicoMarker.getLatLng(), 17, { animate: true, duration: 0.8 });
-            unicoMarker.openPopup();
-            resaltarFilaEnTablas(unicoMarker.itemData.id);
+            map.flyTo(marcadoresVisibles[0].getLatLng(), 17, { animate: true, duration: 0.8 });
+            marcadoresVisibles[0].openPopup();
+            resaltarFilaEnTablas(marcadoresVisibles[0].itemData.id);
         } else {
-            const grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
+            let grupoBounds = L.featureGroup(marcadoresVisibles).getBounds();
             if (grupoBounds.isValid()) {
                 map.fitBounds(grupoBounds, { padding: [50, 50], maxZoom: 16, animate: true });
             }
@@ -580,23 +485,23 @@ function filtrarMapa() {
     }
 }
 
-function limpiarFiltros() {
+window.limpiarFiltros = function() {
     document.getElementById('input-buscar').value = "";
     document.getElementById('select-tipo').value = "TODOS";
     document.getElementById('select-empresa').value = "TODAS";
     document.getElementById('select-estado').value = "TODOS";
 
-    cargarMapa("TODOS");
+    cargarMapaYSuministros(registrosSuministros);
     limpiarSeleccionTablas();
     if (boundsGlobal.length > 0) {
         map.fitBounds(boundsGlobal, { padding: [50, 50], maxZoom: 15, animate: true });
     }
 }
 
-function exportarExcel(tipoServicio) {
+window.exportarExcel = function(tipoServicio) {
     let datosOriginales = tipoServicio === 'AGUA' ? datosBrutosAgua : datosBrutosLuz;
     let tituloReporte = tipoServicio === 'AGUA' ? 'REPORTE DE SUMINISTROS DE AGUA - CCM2L' : 'REPORTE DE SUMINISTROS DE ELECTRICIDAD - CCM2L';
-    let datosOrdenados = [...datosOriginales].sort(ordenarListaTramo);
+    let datosOrdenados = [...datosOriginales].sort((a,b) => a.id.localeCompare(b.id));
 
     let ahora = new Date();
     let fechaStr = ahora.toLocaleDateString('es-PE');
@@ -633,7 +538,7 @@ function verificarDisclaimer() {
     }
 }
 
-function aceptarDisclaimer() {
+window.aceptarDisclaimer = function() {
     localStorage.setItem(STORAGE_KEY_DISCLAIMER, "true");
     const modal = document.getElementById('disclaimer-modal');
     if (modal) {
@@ -642,3 +547,6 @@ function aceptarDisclaimer() {
         setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 }
+
+// Exponer funciones globales necesarias para onclick en HTML
+window.centrarEnId = centrarEnId;
