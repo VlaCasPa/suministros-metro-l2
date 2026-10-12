@@ -35,10 +35,13 @@
         <div id="seccion-mapa">
             <div id="titulo-flotante">Suministros - L2 & L4</div>
 
-            <!-- Botón flotante para desplegar filtros centrados en móvil -->
+            <!-- Botón flotante para desplegar filtros en móvil -->
             <button id="btn-toggle-filtros" onclick="toggleFiltrosMovil()">⚙️ Filtros</button>
 
             <div id="panel-filtros">
+                <!-- Botón X para cerrar la ventana de filtros en móvil -->
+                <button id="btn-cerrar-filtros" onclick="toggleFiltrosMovil()">✕</button>
+
                 <div class="filtro-grupo">
                     <label for="input-buscar">🔍 Buscar ID / Suministro:</label>
                     <input type="text" id="input-buscar" placeholder="Ej: E13, 7721849..." onkeyup="filtrarMapa()">
@@ -72,7 +75,7 @@
                 </div>
                 <div class="filtro-grupo">
                     <label>&nbsp;</label>
-                    <button id="btn-limpiar" onclick="limpiarFiltros()">Limpiar</button>
+                    <button id="btn-limpiar" onclick="limpiarFiltros(); toggleFiltrosMovil();">Limpiar</button>
                 </div>
             </div>
 
@@ -141,7 +144,7 @@
 
     </div>
 
-    <!-- Script auxiliar para desplegar filtros centrados en móvil -->
+    <!-- Script auxiliar para desplegar/cerrar filtros centrados en móvil -->
     <script>
         function toggleFiltrosMovil() {
             const panel = document.getElementById('panel-filtros');
