@@ -4,8 +4,8 @@ const SHEET_LUZ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1R6Blx3
 
 // --- CONFIGURACIÓN DE FIREBASE (PROYECTO CENTRAL: MetroL2-IAM-Central) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC1XakVAZLUDq3-240Q_KoYYPU5JKCTjzs",
@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+const googleProvider = new GoogleAuthProvider();
 
 const REPO_ACTUAL = "suministros-metro-l2";
 
@@ -27,24 +27,65 @@ let registrosSuministros = [];
 let datosBrutosAgua = [];
 let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
+let usuarioActualGlobal = null;
 
 // Control de flujo al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
-    verificarDisclaimer();
     inicializarMapaBase();
     cargarDatosDesdeHojas();
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            await validarPermisosDesdeFirestore(user);
+            usuarioActualGlobal = user;
+            ocultarModalLogin();
+            await validarPermisosYDisclaimer(user);
         } else {
-            mostrarBotonAutenticacion();
+            mostrarModalLogin();
         }
     });
 });
 
-async function validarPermisosDesdeFirestore(user) {
+// Funciones de Autenticación
+window.loginConGoogle = async function() {
+    try {
+        await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+        console.error("Error en Google Auth:", err);
+        alert("No se pudo completar el inicio de sesión con Google.");
+    }
+};
+
+window.loginConCorreoPassword = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+
+    if (!email || !password) {
+        alert("Por favor ingrese su correo corporativo y contraseña.");
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+        console.error("Error en Login corporativo:", err);
+        alert("Credenciales incorrectas o usuario no registrado.");
+    }
+};
+
+function mostrarModalLogin() {
+    const modal = document.getElementById('login-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function ocultarModalLogin() {
+    const modal = document.getElementById('login-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Validación de Permisos y Verificación de Disclaimer en Firestore
+async function validarPermisosYDisclaimer(user) {
     const emailUser = user.email.toLowerCase().trim();
+
     try {
         const docRef = doc(db, "usuarios", emailUser);
         const docSnap = await getDoc(docRef);
@@ -57,8 +98,15 @@ async function validarPermisosDesdeFirestore(user) {
             let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
-                ocultarBotonAutenticacion();
-                if (!esAdmin) aplicarModoSoloLectura();
+                // Verificar si ya aceptó el disclaimer previamente en la colección de aceptaciones
+                const discRef = doc(db, "aceptaciones_disclaimer", emailUser);
+                const discSnap = await getDoc(discRef);
+
+                if (discSnap.exists() && discSnap.data().aceptado === true) {
+                    ocultarDisclaimer();
+                } else {
+                    mostrarDisclaimer();
+                }
             } else {
                 restringirAccesoNoAutorizado();
             }
@@ -66,45 +114,52 @@ async function validarPermisosDesdeFirestore(user) {
             restringirAccesoNoAutorizado();
         }
     } catch (error) {
+        console.error("Error al validar contra Firestore:", error);
         restringirAccesoNoAutorizado();
     }
 }
 
 async function restringirAccesoNoAutorizado() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) modal.style.display = 'none';
     alert("No puede ingresar consultar con el administrador y diseñador de la micro app");
     await signOut(auth);
     window.location.href = "https://github.com";
 }
 
-function mostrarBotonAutenticacion() {
-    let contenedorLogin = document.getElementById("panel-login-flotante");
-    if (!contenedorLogin) {
-        contenedorLogin = document.createElement("div");
-        contenedorLogin.id = "panel-login-flotante";
-        contenedorLogin.style.cssText = "position:absolute; top:85px; left:15px; z-index:999; background:rgba(15, 23, 42, 0.95); padding:6px 10px; border-radius:6px; border:1px solid #334155; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:8px;";
-        contenedorLogin.innerHTML = `
-            <span style="font-size:10px; color:#f8fafc; font-weight:600;">Acceso:</span>
-            <button id="btn-google-login" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">🔑 Login Google</button>
-        `;
-        document.getElementById("seccion-mapa").appendChild(contenedorLogin);
-        document.getElementById("btn-google-login").onclick = async () => {
-            await signInWithPopup(auth, provider);
-        };
-    } else {
-        contenedorLogin.style.display = "flex";
+function mostrarDisclaimer() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function ocultarDisclaimer() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 }
 
-function ocultarBotonAutenticacion() {
-    const contenedorLogin = document.getElementById("panel-login-flotante");
-    if (contenedorLogin) contenedorLogin.style.display = "none";
-}
+// Registrar aceptación de términos en Firebase Firestore
+window.aceptarDisclaimer = async function() {
+    if (!usuarioActualGlobal) return;
+    const emailUser = usuarioActualGlobal.email.toLowerCase().trim();
 
-function aplicarModoSoloLectura() {
-    console.info("Modo de seguridad activado: Visualización de solo lectura.");
-}
+    try {
+        const discRef = doc(db, "aceptaciones_disclaimer", emailUser);
+        await setDoc(discRef, {
+            email: emailUser,
+            aceptado: true,
+            repositorio: REPO_ACTUAL,
+            fecha_aceptacion: serverTimestamp(),
+            dispositivo: navigator.userAgent
+        }, { merge: true });
+
+        ocultarDisclaimer();
+    } catch (err) {
+        console.error("Error al registrar aceptación en Firestore:", err);
+        ocultarDisclaimer(); // Permite continuar aun si falla el registro de auditoría
+    }
+};
 
 function inicializarMapaBase() {
     if (map) return;
@@ -525,27 +580,6 @@ window.exportarExcel = function(tipoServicio) {
 
     XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
     XLSX.writeFile(wb, tipoServicio === 'AGUA' ? "Reporte_Suministros_Agua_CCM2L.xlsx" : "Reporte_Suministros_Electricidad_CCM2L.xlsx");
-}
-
-const STORAGE_KEY_DISCLAIMER = "ccm2l_suministros_disclaimer_accepted_v1";
-
-function verificarDisclaimer() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (!localStorage.getItem(STORAGE_KEY_DISCLAIMER)) {
-        if (modal) modal.style.display = 'flex';
-    } else {
-        if (modal) modal.style.display = 'none';
-    }
-}
-
-window.aceptarDisclaimer = function() {
-    localStorage.setItem(STORAGE_KEY_DISCLAIMER, "true");
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) {
-        modal.style.opacity = '0';
-        modal.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }
 }
 
 window.centrarEnId = centrarEnId;
