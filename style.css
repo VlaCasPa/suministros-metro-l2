@@ -315,7 +315,6 @@ tr.fila-resaltada {
     font-weight: bold;
 }
 
-/* Estilos para la ventana modal de Login Corporativo */
 .modal-overlay-login {
     position: fixed;
     top: 0;
@@ -382,11 +381,6 @@ tr.fila-resaltada {
     background: #f8fafc;
 }
 
-.login-input:focus {
-    border-color: #2563eb;
-    background: #ffffff;
-}
-
 .btn-login-sistema {
     background: #0f172a;
     color: #ffffff;
@@ -397,11 +391,6 @@ tr.fila-resaltada {
     font-size: 13px;
     cursor: pointer;
     text-transform: uppercase;
-    transition: background 0.2s;
-}
-
-.btn-login-sistema:hover {
-    background: #1e293b;
 }
 
 .login-divider {
@@ -435,14 +424,8 @@ tr.fila-resaltada {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    transition: background 0.2s;
 }
 
-.btn-google-auth:hover {
-    background: #f1f5f9;
-}
-
-/* Modal de Disclaimer con z-index superior absoluto */
 .modal-overlay-disclaimer {
     position: fixed;
     top: 0;
@@ -533,14 +516,14 @@ tr.fila-resaltada {
 
     #seccion-mapa {
         width: 100vw;
-        height: 42vh;
+        height: 280px; /* Altura estricta en píxeles para evitar que Leaflet renderice en 0px en celulares */
         flex-shrink: 0;
     }
 
     #seccion-tablas {
         width: 100vw;
         height: auto;
-        min-height: 58vh;
+        min-height: calc(100vh - 280px);
         border-left: none;
         border-top: 2px solid #334155;
         overflow-y: visible;
