@@ -266,11 +266,11 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Versión Web: Altura fluida sin límite fijo en max-height */
 .table-container {
     flex: 1;
     overflow-y: auto;
     padding: 8px;
-    max-height: 200px;
 }
 
 table {
@@ -536,7 +536,7 @@ tr.fila-resaltada {
         flex-direction: column;
     }
 
-    /* Corrección clave: Altura fija individual para cada panel de tabla en móvil */
+    /* Altura fija controlada exclusivamente para la versión móvil */
     .tabla-panel {
         height: 280px !important;
         flex: none !important;
