@@ -100,7 +100,7 @@ async function validarPermisosYDisclaimer(user) {
             const esAdmin = datosUsuario.es_admin || false;
             const reposPermitidos = datosUsuario.repositorios_permitidos || datosUsuario.permisos_escritura || [];
 
-            let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTIONAL) || reposPermitidos.includes(REPO_ACTUAL));
+            let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
                 verificarDisclaimerUsuario();
