@@ -65,8 +65,14 @@
                 <button id="btn-cerrar-filtros" onclick="toggleFiltrosMovil()">✕</button>
 
                 <div class="filtro-grupo">
-                    <label for="input-buscar">🔍 Buscar ID / Suministro:</label>
+                    <label for="input-buscar">🔍 Buscar ID / Sum.:</label>
                     <input type="text" id="input-buscar" placeholder="Ej: E13, 7721849..." onkeyup="filtrarMapa()">
+                </div>
+                <div class="filtro-grupo">
+                    <label for="select-obra">Obra:</label>
+                    <select id="select-obra" onchange="filtrarMapa()">
+                        <option value="TODAS">Todas</option>
+                    </select>
                 </div>
                 <div class="filtro-grupo">
                     <label for="select-tipo">Tipo:</label>
@@ -130,10 +136,11 @@
                                 <th>Empresa</th>
                                 <th>Tipo</th>
                                 <th>Estado</th>
+                                <th>Obra</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
+                            <tr><td colspan="6" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -154,10 +161,11 @@
                                 <th>Empresa</th>
                                 <th>Tipo</th>
                                 <th>Estado</th>
+                                <th>Obra</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="5" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
+                            <tr><td colspan="6" style="text-align:center;">Cargando datos desde Google Sheets...</td></tr>
                         </tbody>
                     </table>
                 </div>
