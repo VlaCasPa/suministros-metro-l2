@@ -110,7 +110,7 @@ body {
     border: 1px solid #334155;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: flex-end;
 }
 
@@ -120,7 +120,7 @@ body {
 }
 
 .filtro-grupo label {
-    font-size: 10px;
+    font-size: 9.5px;
     color: #94a3b8;
     margin-bottom: 3px;
     font-weight: 600;
@@ -130,9 +130,9 @@ body {
     background: #1e293b;
     border: 1px solid #475569;
     color: #f8fafc;
-    padding: 5px 8px;
+    padding: 5px 6px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 10.5px;
     outline: none;
 }
 
@@ -266,17 +266,16 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Versión Web: Altura fluida sin límite fijo en max-height */
 .table-container {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 6px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: 10px;
     color: #1e293b;
 }
 
@@ -286,14 +285,14 @@ th {
     position: sticky;
     top: 0;
     z-index: 5;
-    padding: 6px 8px;
+    padding: 5px 5px;
     text-align: left;
     font-weight: 700;
     border-bottom: 2px solid #0f172a;
 }
 
 td {
-    padding: 6px 8px;
+    padding: 5px 5px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -536,7 +535,6 @@ tr.fila-resaltada {
         flex-direction: column;
     }
 
-    /* Altura fija controlada exclusivamente para la versión móvil */
     .tabla-panel {
         height: 280px !important;
         flex: none !important;
@@ -587,11 +585,11 @@ tr.fila-resaltada {
     }
 
     table {
-        font-size: 10px;
+        font-size: 9.5px;
     }
 
     td, th {
-        padding: 5px 6px;
+        padding: 4px 4px;
     }
 
     .table-container {
