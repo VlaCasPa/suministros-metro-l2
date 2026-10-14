@@ -100,7 +100,7 @@ async function validarPermisosYDisclaimer(user) {
             const esAdmin = datosUsuario.es_admin || false;
             const reposPermitidos = datosUsuario.repositorios_permitidos || datosUsuario.permisos_escritura || [];
 
-            let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTUAL));
+            let usuarioAutorizado = (esAdmin || reposPermitidos.includes("todos") || reposPermitidos.includes(REPO_ACTIONAL) || reposPermitidos.includes(REPO_ACTUAL));
 
             if (usuarioAutorizado) {
                 verificarDisclaimerUsuario();
@@ -266,7 +266,6 @@ async function cargarDatosDesdeHojas() {
             let idxLat = buscarIndice(headersAgua, ["LATITUD", "LAT"]);
             let idxLng = buscarIndice(headersAgua, ["LONGITUD", "LONG", "LNG"]);
             
-            // Columna L (índice 11) para Obra
             let idxObra = buscarIndice(headersAgua, ["OBRA", "NOMBRE_OBRA"]);
             if (idxObra === -1 && headersAgua.length > 11) idxObra = 11;
 
@@ -314,7 +313,6 @@ async function cargarDatosDesdeHojas() {
             let idxLat = buscarIndice(headersLuz, ["LATITUD", "LAT"]);
             let idxLng = buscarIndice(headersLuz, ["LONGITUD", "LONG", "LNG"]);
 
-            // Columna L (índice 11) para Obra
             let idxObra = buscarIndice(headersLuz, ["OBRA", "NOMBRE_OBRA"]);
             if (idxObra === -1 && headersLuz.length > 11) idxObra = 11;
 
