@@ -269,9 +269,7 @@ body {
 .table-container {
     flex: 1;
     overflow-y: auto;
-    overflow-x: auto; /* Habilita el desplazamiento horizontal en celulares para ver la columna Obra */
-    padding: 6px;
-    -webkit-overflow-scrolling: touch;
+    padding: 4px;
 }
 
 table {
@@ -279,7 +277,6 @@ table {
     border-collapse: collapse;
     font-size: 10px;
     color: #1e293b;
-    white-space: nowrap; /* Evita saltos de línea forzados en celdas para una lectura ordenada */
 }
 
 th {
@@ -288,14 +285,14 @@ th {
     position: sticky;
     top: 0;
     z-index: 5;
-    padding: 5px 6px;
+    padding: 5px 4px;
     text-align: left;
     font-weight: 700;
     border-bottom: 2px solid #0f172a;
 }
 
 td {
-    padding: 5px 6px;
+    padding: 5px 4px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -590,16 +587,29 @@ tr.fila-resaltada {
     }
 
     table {
-        font-size: 10px;
+        font-size: 9px;
+        table-layout: fixed;
+        width: 100%;
     }
 
+    /* Asignación de anchos proporcionales para ajustar las 6 columnas al ancho del celular */
+    th:nth-child(1), td:nth-child(1) { width: 15%; } /* ID */
+    th:nth-child(2), td:nth-child(2) { width: 22%; } /* Servicio */
+    th:nth-child(3), td:nth-child(3) { width: 18%; } /* Empresa */
+    th:nth-child(4), td:nth-child(4) { width: 17%; } /* Tipo */
+    th:nth-child(5), td:nth-child(5) { width: 18%; } /* Estado */
+    th:nth-child(6), td:nth-child(6) { width: 10%; } /* Obra */
+
     td, th {
-        padding: 5px 6px;
+        padding: 4px 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .table-container {
         max-height: 210px !important;
-        overflow-x: auto !important;
+        overflow-x: hidden !important; /* Desactiva el scroll horizontal para forzar el ajuste al 100% de la pantalla */
     }
 
     .tabla-panel.tabla-luz .tabla-header span {
