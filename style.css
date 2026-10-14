@@ -269,7 +269,9 @@ body {
 .table-container {
     flex: 1;
     overflow-y: auto;
+    overflow-x: auto; /* Habilita el desplazamiento horizontal en celulares para ver la columna Obra */
     padding: 6px;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -277,6 +279,7 @@ table {
     border-collapse: collapse;
     font-size: 10px;
     color: #1e293b;
+    white-space: nowrap; /* Evita saltos de línea forzados en celdas para una lectura ordenada */
 }
 
 th {
@@ -285,14 +288,14 @@ th {
     position: sticky;
     top: 0;
     z-index: 5;
-    padding: 5px 5px;
+    padding: 5px 6px;
     text-align: left;
     font-weight: 700;
     border-bottom: 2px solid #0f172a;
 }
 
 td {
-    padding: 5px 5px;
+    padding: 5px 6px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -567,6 +570,8 @@ tr.fila-resaltada {
         box-shadow: 0 10px 30px rgba(0,0,0,0.6);
         z-index: 2000;
         border: 1px solid #334155;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
     #panel-filtros.activo {
@@ -585,15 +590,16 @@ tr.fila-resaltada {
     }
 
     table {
-        font-size: 9.5px;
+        font-size: 10px;
     }
 
     td, th {
-        padding: 4px 4px;
+        padding: 5px 6px;
     }
 
     .table-container {
         max-height: 210px !important;
+        overflow-x: auto !important;
     }
 
     .tabla-panel.tabla-luz .tabla-header span {
