@@ -30,7 +30,7 @@ let datosBrutosLuz = [];
 let map, capaMarcadores, todosLosMarcadores = [], boundsGlobal = [], mapaRegistrosPorId = {};
 let usuarioActualGlobal = null;
 
-// Control de flujo inicial al cargar la página (Independiente y seguro)
+// Control de flujo inicial al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
     inicializarMapaBase();
     cargarDatosDesdeHojas();
@@ -83,11 +83,9 @@ function ocultarModalLogin() {
     if (modal) modal.style.display = 'none';
 }
 
-// Validación de Permisos y Verificación de Disclaimer en Firestore con resguardo para administradores
 async function validarPermisosYDisclaimer(user) {
     const emailUser = user.email.toLowerCase().trim();
 
-    // Resguardo absoluto inmediato para superadministradores
     if (emailUser === "zebaxx@gmail.com" || emailUser === "vcasasp@ccmetrolima.com") {
         verificarDisclaimerUsuario();
         return;
@@ -267,6 +265,10 @@ async function cargarDatosDesdeHojas() {
             let idxDoc = buscarIndice(headersAgua, ["DOCUMENT", "COMENTARI", "OBSERVACION", "DOC"]);
             let idxLat = buscarIndice(headersAgua, ["LATITUD", "LAT"]);
             let idxLng = buscarIndice(headersAgua, ["LONGITUD", "LONG", "LNG"]);
+            
+            // Columna L (índice 11) para Obra
+            let idxObra = buscarIndice(headersAgua, ["OBRA", "NOMBRE_OBRA"]);
+            if (idxObra === -1 && headersAgua.length > 11) idxObra = 11;
 
             for (let i = 1; i < filasAgua.length; i++) {
                 let cols = filasAgua[i];
@@ -280,8 +282,9 @@ async function cargarDatosDesdeHojas() {
                 let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim().toUpperCase() : "-";
                 let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim().toUpperCase() : "ACTIVO";
                 let docVal = (idxDoc !== -1 && cols[idxDoc]) ? cols[idxDoc].trim() : "-";
+                let obraVal = (idxObra !== -1 && cols[idxObra]) ? cols[idxObra].trim() : ((cols[11]) ? cols[11].trim() : "-");
 
-                datosBrutosAgua.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
+                datosBrutosAgua.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo, obra: obraVal });
 
                 let lat = idxLat !== -1 ? parsearNumeroLatLon(cols[idxLat]) : null;
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
@@ -294,7 +297,7 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum && sumNum !== "-") {
-                    mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal });
+                    mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
                 }
             }
         }
@@ -311,6 +314,10 @@ async function cargarDatosDesdeHojas() {
             let idxLat = buscarIndice(headersLuz, ["LATITUD", "LAT"]);
             let idxLng = buscarIndice(headersLuz, ["LONGITUD", "LONG", "LNG"]);
 
+            // Columna L (índice 11) para Obra
+            let idxObra = buscarIndice(headersLuz, ["OBRA", "NOMBRE_OBRA"]);
+            if (idxObra === -1 && headersLuz.length > 11) idxObra = 11;
+
             for (let i = 1; i < filasLuz.length; i++) {
                 let cols = filasLuz[i];
                 if (idxId === -1 || cols.length <= idxId) continue;
@@ -323,8 +330,9 @@ async function cargarDatosDesdeHojas() {
                 let tipoVal = (idxTipo !== -1 && cols[idxTipo]) ? cols[idxTipo].trim().toUpperCase() : "-";
                 let estado = (idxEst !== -1 && cols[idxEst]) ? cols[idxEst].trim().toUpperCase() : "ACTIVO";
                 let docVal = (idxDoc !== -1 && cols[idxDoc]) ? cols[idxDoc].trim() : "-";
+                let obraVal = (idxObra !== -1 && cols[idxObra]) ? cols[idxObra].trim() : ((cols[11]) ? cols[11].trim() : "-");
 
-                datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo });
+                datosBrutosLuz.push({ id, suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, tramo, obra: obraVal });
 
                 let lat = idxLat !== -1 ? parsearNumeroLatLon(cols[idxLat]) : null;
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
@@ -337,7 +345,7 @@ async function cargarDatosDesdeHojas() {
                 }
 
                 if (sumNum && sumNum !== "-") {
-                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal });
+                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
                 }
             }
         }
@@ -351,11 +359,31 @@ async function cargarDatosDesdeHojas() {
             luzList: item.luzList
         }));
 
+        actualizarFiltroObras();
         cargarMapaYSuministros(registrosSuministros);
 
     } catch (error) {
         console.error("Error crítico al procesar las hojas:", error);
     }
+}
+
+function actualizarFiltroObras() {
+    const selectObra = document.getElementById('select-obra');
+    if (!selectObra) return;
+
+    let obrasSet = new Set();
+    registrosSuministros.forEach(item => {
+        item.aguaList.forEach(a => { if (a.obra && a.obra !== "-") obrasSet.add(a.obra); });
+        item.luzList.forEach(l => { if (l.obra && l.obra !== "-") obrasSet.add(l.obra); });
+    });
+
+    let valorActual = selectObra.value;
+    let html = '<option value="TODAS">Todas</option>';
+    Array.from(obrasSet).sort().forEach(obra => {
+        html += `<option value="${obra}">${obra}</option>`;
+    });
+    selectObra.innerHTML = html;
+    selectObra.value = obrasSet.has(valorActual) ? valorActual : "TODAS";
 }
 
 function ordenarListaTramo(a, b) {
@@ -388,31 +416,31 @@ function renderizarTablas(listaEstructuras) {
     ordenados.forEach(item => {
         if (item.aguaList.length === 0) {
             tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
             </tr>`;
         } else {
             item.aguaList.forEach(a => {
                 tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td>
+                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td><td>${a.obra || '-'}</td>
                 </tr>`;
             });
         }
 
         if (item.luzList.length === 0) {
             tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td>
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
             </tr>`;
         } else {
             item.luzList.forEach(l => {
                 tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td>
+                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td><td>${l.obra || '-'}</td>
                 </tr>`;
             });
         }
     });
 
-    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
-    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz || `<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>`;
+    document.querySelector("#tabla-agua-content tbody").innerHTML = tbodyAgua || `<tr><td colspan="6" style="text-align:center;">Sin registros</td></tr>`;
+    document.querySelector("#tabla-luz-content tbody").innerHTML = tbodyLuz || `<tr><td colspan="6" style="text-align:center;">Sin registros</td></tr>`;
 }
 
 function centrarEnId(idBuscado) {
@@ -456,14 +484,16 @@ function cargarMapaYSuministros(listaEstructuras) {
         let aguaHtml = item.aguaList.length > 0 ? item.aguaList.map(a => `
             <div class="popup-item-block">
                 <div class="popup-line-primary">💧 <b>${a.suministro} (${a.empresa})</b></div>
-                <div class="popup-line-secondary">Tipo: <b>${a.tipo}</b> - Estado: <b>${a.estado}</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${a.tipo}</b> - Est: <b>${a.estado}</b></div>
+                <div class="popup-line-secondary">Obra: <b>${a.obra || '-'}</b></div>
             </div>
         `).join("") : "Sin registro de agua";
 
         let luzHtml = item.luzList.length > 0 ? item.luzList.map(l => `
             <div class="popup-item-block">
                 <div class="popup-line-primary">⚡ <b>${l.suministro} (${l.empresa})</b></div>
-                <div class="popup-line-secondary">Tipo: <b>${l.tipo}</b> - Estado: <b>${l.estado}</b></div>
+                <div class="popup-line-secondary">Tipo: <b>${l.tipo}</b> - Est: <b>${l.estado}</b></div>
+                <div class="popup-line-secondary">Obra: <b>${l.obra || '-'}</b></div>
             </div>
         `).join("") : "Sin registro de luz";
 
@@ -509,6 +539,7 @@ window.filtrarMapa = function() {
     const tipoFiltro = document.getElementById('select-tipo').value;
     const empresaFiltro = document.getElementById('select-empresa').value;
     const estadoFiltro = document.getElementById('select-estado').value;
+    const obraFiltro = document.getElementById('select-obra').value;
 
     let filtrados = registrosSuministros.filter(item => {
         let matchTexto = (textoBusqueda === "" || item.id.toLowerCase().includes(textoBusqueda) || 
@@ -520,8 +551,9 @@ window.filtrarMapa = function() {
         let matchTipo = (tipoFiltro === "TODOS" || todosServicios.some(s => s.tipo.includes(tipoFiltro)));
         let matchEmpresa = (empresaFiltro === "TODAS" || todosServicios.some(s => s.empresa.includes(empresaFiltro)));
         let matchEstado = (estadoFiltro === "TODOS" || todosServicios.some(s => s.estado.includes(estadoFiltro)));
+        let matchObra = (obraFiltro === "TODAS" || todosServicios.some(s => s.obra === obraFiltro));
 
-        return matchTexto && matchTipo && matchEmpresa && matchEstado;
+        return matchTexto && matchTipo && matchEmpresa && matchEstado && matchObra;
     });
 
     capaMarcadores.clearLayers();
@@ -555,6 +587,7 @@ window.limpiarFiltros = function() {
     document.getElementById('select-tipo').value = "TODOS";
     document.getElementById('select-empresa').value = "TODAS";
     document.getElementById('select-estado').value = "TODOS";
+    document.getElementById('select-obra').value = "TODAS";
 
     cargarMapaYSuministros(registrosSuministros);
     limpiarSeleccionTablas();
@@ -577,16 +610,16 @@ window.exportarExcel = function(tipoServicio) {
         [tituloReporte],
         [timestampStr],
         [],
-        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO"]
+        ["ID", "SUMINISTRO", "EMPRESA", "ESTADO", "TIPO", "DOCUMENTO", "OBRA"]
     ];
 
     datosOrdenados.forEach(item => {
-        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento]);
+        wsData.push([item.id, item.suministro, item.empresa, item.estado, item.tipo, item.documento, item.obra]);
     });
 
     let wb = XLSX.utils.book_new();
     let ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = [{wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 15}, {wch: 25}];
+    ws['!cols'] = [{wch: 12}, {wch: 18}, {wch: 15}, {wch: 22}, {wch: 15}, {wch: 25}, {wch: 20}];
 
     XLSX.utils.book_append_sheet(wb, ws, tipoServicio === 'AGUA' ? "Suministros Agua" : "Suministros Luz");
     XLSX.writeFile(wb, tipoServicio === 'AGUA' ? "Reporte_Suministros_Agua_CCM2L.xlsx" : "Reporte_Suministros_Electricidad_CCM2L.xlsx");
