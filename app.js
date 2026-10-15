@@ -295,7 +295,10 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
+                // Validación estricta: Solo registrar si el suministro es válido
+                if (sumNum && sumNum !== "-" && sumNum !== "") {
+                    mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
+                }
             }
         }
 
@@ -340,7 +343,10 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
+                // Validación estricta: Solo registrar si el número de suministro existe y no es un guión
+                if (sumNum && sumNum !== "-" && sumNum !== "") {
+                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
+                }
             }
         }
 
@@ -423,6 +429,7 @@ function renderizarTablas(listaEstructuras) {
     let tbodyLuz = "";
 
     ordenados.forEach(item => {
+        // Render Agua
         if (item.aguaList.length === 0) {
             tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
                 <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
@@ -437,6 +444,7 @@ function renderizarTablas(listaEstructuras) {
             });
         }
 
+        // Render Luz
         if (item.luzList.length === 0) {
             tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
                 <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
