@@ -295,9 +295,7 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                if (sumNum && sumNum !== "-") {
-                    mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
-                }
+                mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
             }
         }
 
@@ -342,9 +340,7 @@ async function cargarDatosDesdeHojas() {
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                if (sumNum && sumNum !== "-") {
-                    mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
-                }
+                mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
             }
         }
 
