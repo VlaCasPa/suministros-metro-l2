@@ -402,6 +402,21 @@ function obtenerColorPin(aguaList, luzList) {
     return "#211433";
 }
 
+// Función de diseño visual por código de obra
+function obtenerEstiloObra(obra) {
+    const val = (obra || '').toString().trim();
+    switch(val) {
+        case '808': return 'background-color: #6ee7b7; color: #064e3b;'; // Verde menta
+        case '815': return 'background-color: #fcd34d; color: #78350f;'; // Ámbar / Naranja
+        case '803': return 'background-color: #fca5a5; color: #7f1d1d;'; // Coral de alerta
+        case '806': return 'background-color: #fde047; color: #713f12;'; // Amarillo operativo
+        case '802': return 'background-color: #93c5fd; color: #1e3a8a;'; // Azul corporativo
+        case '804': return 'background-color: #c4b5fd; color: #3b0764;'; // Morado
+        case '805': return 'background-color: #f472b6; color: #831843;'; // Fucsia
+        default:    return 'background-color: #cbd5e1; color: #334155;'; // Neutro estándar
+    }
+}
+
 function renderizarTablas(listaEstructuras) {
     let ordenados = [...listaEstructuras].sort(ordenarListaTramo);
     let tbodyAgua = "";
@@ -414,8 +429,10 @@ function renderizarTablas(listaEstructuras) {
             </tr>`;
         } else {
             item.aguaList.forEach(a => {
+                let obraStr = a.obra || '-';
+                let estiloBadge = obtenerEstiloObra(obraStr);
                 tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td><td>${a.obra || '-'}</td>
+                    <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td><td><span class="obra-badge" style="${estiloBadge}">${obraStr}</span></td>
                 </tr>`;
             });
         }
@@ -426,8 +443,10 @@ function renderizarTablas(listaEstructuras) {
             </tr>`;
         } else {
             item.luzList.forEach(l => {
+                let obraStr = l.obra || '-';
+                let estiloBadge = obtenerEstiloObra(obraStr);
                 tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td><td>${l.obra || '-'}</td>
+                    <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td><td><span class="obra-badge" style="${estiloBadge}">${obraStr}</span></td>
                 </tr>`;
             });
         }
