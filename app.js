@@ -289,13 +289,13 @@ async function cargarDatosDesdeHojas() {
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
 
                 if (!mapaEstructuras[id]) {
-                    mapaEstructuras[id] = { id, tramo, lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
+                    mapaEstructuras[id] = { id, tramo, obra: obraVal !== "-" ? obraVal : "-", lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
                 } else {
+                    if (obraVal && obraVal !== "-" && mapaEstructuras[id].obra === "-") mapaEstructuras[id].obra = obraVal;
                     if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                // Validación estricta: Solo registrar si el suministro es válido
                 if (sumNum && sumNum !== "-" && sumNum !== "") {
                     mapaEstructuras[id].aguaList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
                 }
@@ -337,13 +337,13 @@ async function cargarDatosDesdeHojas() {
                 let lng = idxLng !== -1 ? parsearNumeroLatLon(cols[idxLng]) : null;
 
                 if (!mapaEstructuras[id]) {
-                    mapaEstructuras[id] = { id, tramo, lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
+                    mapaEstructuras[id] = { id, tramo, obra: obraVal !== "-" ? obraVal : "-", lat: lat !== null ? lat : -12.0464, lng: lng !== null ? lng : -77.0428, aguaList: [], luzList: [] };
                 } else {
+                    if (obraVal && obraVal !== "-" && mapaEstructuras[id].obra === "-") mapaEstructuras[id].obra = obraVal;
                     if (lat !== null && (mapaEstructuras[id].lat === -12.0464 || mapaEstructuras[id].lat === 0)) mapaEstructuras[id].lat = lat;
                     if (lng !== null && (mapaEstructuras[id].lng === -77.0428 || mapaEstructuras[id].lng === 0)) mapaEstructuras[id].lng = lng;
                 }
 
-                // Validación estricta: Solo registrar si el número de suministro existe y no es un guión
                 if (sumNum && sumNum !== "-" && sumNum !== "") {
                     mapaEstructuras[id].luzList.push({ suministro: sumNum, empresa, estado, tipo: tipoVal, documento: docVal, obra: obraVal });
                 }
@@ -353,6 +353,7 @@ async function cargarDatosDesdeHojas() {
         registrosSuministros = Object.values(mapaEstructuras).map(item => ({
             id: item.id,
             tramo: item.tramo,
+            obra: item.obra,
             lat: item.lat,
             lng: item.lng,
             aguaList: item.aguaList,
@@ -373,6 +374,7 @@ function actualizarFiltroObras() {
 
     let obrasSet = new Set();
     registrosSuministros.forEach(item => {
+        if (item.obra && item.obra !== "-") obrasSet.add(item.obra);
         item.aguaList.forEach(a => { if (a.obra && a.obra !== "-") obrasSet.add(a.obra); });
         item.luzList.forEach(l => { if (l.obra && l.obra !== "-") obrasSet.add(l.obra); });
     });
@@ -412,14 +414,14 @@ function obtenerColorPin(aguaList, luzList) {
 function obtenerEstiloObra(obra) {
     const val = (obra || '').toString().trim();
     switch(val) {
-        case '808': return 'background-color: #6ee7b7; color: #064e3b;'; // Verde menta
-        case '815': return 'background-color: #fcd34d; color: #78350f;'; // Ámbar / Naranja
-        case '803': return 'background-color: #fca5a5; color: #7f1d1d;'; // Coral de alerta
-        case '806': return 'background-color: #fde047; color: #713f12;'; // Amarillo operativo
-        case '802': return 'background-color: #93c5fd; color: #1e3a8a;'; // Azul corporativo
-        case '804': return 'background-color: #c4b5fd; color: #3b0764;'; // Morado
-        case '805': return 'background-color: #f472b6; color: #831843;'; // Fucsia
-        default:    return 'background-color: #cbd5e1; color: #334155;'; // Neutro estándar
+        case '808': return 'background-color: #6ee7b7; color: #064e3b;';
+        case '815': return 'background-color: #fcd34d; color: #78350f;';
+        case '803': return 'background-color: #fca5a5; color: #7f1d1d;';
+        case '806': return 'background-color: #fde047; color: #713f12;';
+        case '802': return 'background-color: #93c5fd; color: #1e3a8a;';
+        case '804': return 'background-color: #c4b5fd; color: #3b0764;';
+        case '805': return 'background-color: #f472b6; color: #831843;';
+        default:    return 'background-color: #cbd5e1; color: #334155;';
     }
 }
 
@@ -429,14 +431,17 @@ function renderizarTablas(listaEstructuras) {
     let tbodyLuz = "";
 
     ordenados.forEach(item => {
+        let obraGlobal = item.obra && item.obra !== '-' ? item.obra : '-';
+        let estiloBadgeGlobal = obtenerEstiloObra(obraGlobal);
+
         // Render Agua
         if (item.aguaList.length === 0) {
             tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td><span class="obra-badge" style="${estiloBadgeGlobal}">${obraGlobal}</span></td>
             </tr>`;
         } else {
             item.aguaList.forEach(a => {
-                let obraStr = a.obra || '-';
+                let obraStr = (a.obra && a.obra !== '-') ? a.obra : obraGlobal;
                 let estiloBadge = obtenerEstiloObra(obraStr);
                 tbodyAgua += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
                     <td><b>${item.id}</b></td><td>${a.suministro}</td><td>${a.empresa}</td><td>${a.tipo}</td><td>${a.estado}</td><td><span class="obra-badge" style="${estiloBadge}">${obraStr}</span></td>
@@ -447,11 +452,11 @@ function renderizarTablas(listaEstructuras) {
         // Render Luz
         if (item.luzList.length === 0) {
             tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
-                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td>-</td>
+                <td><b>${item.id}</b></td><td>-</td><td>-</td><td>-</td><td>SIN REGISTRO</td><td><span class="obra-badge" style="${estiloBadgeGlobal}">${obraGlobal}</span></td>
             </tr>`;
         } else {
             item.luzList.forEach(l => {
-                let obraStr = l.obra || '-';
+                let obraStr = (l.obra && l.obra !== '-') ? l.obra : obraGlobal;
                 let estiloBadge = obtenerEstiloObra(obraStr);
                 tbodyLuz += `<tr class="fila-interactiva" data-id="${item.id}" onclick="centrarEnId('${item.id}')">
                     <td><b>${item.id}</b></td><td>${l.suministro}</td><td>${l.empresa}</td><td>${l.tipo}</td><td>${l.estado}</td><td><span class="obra-badge" style="${estiloBadge}">${obraStr}</span></td>
@@ -506,7 +511,7 @@ function cargarMapaYSuministros(listaEstructuras) {
             <div class="popup-item-block">
                 <div class="popup-line-primary">💧 <b>${a.suministro} (${a.empresa})</b></div>
                 <div class="popup-line-secondary">Tipo: <b>${a.tipo}</b> - Est: <b>${a.estado}</b></div>
-                <div class="popup-line-secondary">Obra: <b>${a.obra || '-'}</b></div>
+                <div class="popup-line-secondary">Obra: <b>${a.obra || item.obra || '-'}</b></div>
             </div>
         `).join("") : "Sin registro de agua";
 
@@ -514,7 +519,7 @@ function cargarMapaYSuministros(listaEstructuras) {
             <div class="popup-item-block">
                 <div class="popup-line-primary">⚡ <b>${l.suministro} (${l.empresa})</b></div>
                 <div class="popup-line-secondary">Tipo: <b>${l.tipo}</b> - Est: <b>${l.estado}</b></div>
-                <div class="popup-line-secondary">Obra: <b>${l.obra || '-'}</b></div>
+                <div class="popup-line-secondary">Obra: <b>${l.obra || item.obra || '-'}</b></div>
             </div>
         `).join("") : "Sin registro de luz";
 
@@ -572,7 +577,7 @@ window.filtrarMapa = function() {
         let matchTipo = (tipoFiltro === "TODOS" || todosServicios.some(s => s.tipo.includes(tipoFiltro)));
         let matchEmpresa = (empresaFiltro === "TODAS" || todosServicios.some(s => s.empresa.includes(empresaFiltro)));
         let matchEstado = (estadoFiltro === "TODOS" || todosServicios.some(s => s.estado.includes(estadoFiltro)));
-        let matchObra = (obraFiltro === "TODAS" || todosServicios.some(s => s.obra === obraFiltro));
+        let matchObra = (obraFiltro === "TODAS" || item.obra === obraFiltro || todosServicios.some(s => s.obra === obraFiltro));
 
         return matchTexto && matchTipo && matchEmpresa && matchEstado && matchObra;
     });
